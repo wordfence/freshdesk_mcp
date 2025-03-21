@@ -92,11 +92,11 @@ The server offers several tools for Freshdesk operations:
 
 Once configured, you can ask Claude to perform operations like:
 
-- "Create a new support ticket"
-- "Update the status of ticket #12345"
-- "Search for all high-priority tickets"
-- "Fetch all ticket fields from Freshdesk"
-- "Get all tickets from Freshdesk of page 1"
+- "Create a new ticket with subject 'Payment Issue for customer A101' and description as 'Reaching out for a payment issue in the last month for customer A101', where customer email is a101@acme.com and set priority to high"
+- "Update the status of ticket #12345 to 'Resolved'"
+- "List all high-priority tickets assigned to the agent John Doe"
+- "List previous tickets of customer A101 in last 30 days"
+
 
 ## Testing
 
