@@ -1,4 +1,5 @@
 # Freshdesk MCP Server
+[![smithery badge](https://smithery.ai/badge/@effytech/freshdesk_mcp)](https://smithery.ai/server/@effytech/freshdesk_mcp)
 
 An MCP server implementation that integrates with Freshdesk, enabling AI models to interact with Freshdesk modules and perform various support operations.
 
@@ -52,6 +53,14 @@ The server offers several tools for Freshdesk operations:
     - `ticket_id` (number, required): ID of the ticket to get
 
 ## Getting Started
+
+### Installing via Smithery
+
+To install freshdesk_mcp for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@effytech/freshdesk_mcp):
+
+```bash
+npx -y @smithery/cli install @effytech/freshdesk_mcp --client claude
+```
 
 ### Prerequisites
 
