@@ -66,7 +66,7 @@ npx -y @smithery/cli install @effytech/freshdesk_mcp --client claude
 
 - A Freshdesk account (sign up at [freshdesk.com](https://freshdesk.com))
 - Freshdesk API key
-- `uvx` installed (`pip install uvx` or `brew install uvx`)
+- `uvx` installed (`pip install uv` or `brew install uv`)
 
 ### Configuration
 
