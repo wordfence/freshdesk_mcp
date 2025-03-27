@@ -297,6 +297,17 @@ async def search_tickets(query: str) -> Dict[str, Any]:
         response = await client.get(url, headers=headers, params=params)
         return response.json()
 
+@mcp.tool()
+async def get_ticket_conversation(ticket_id: int)-> list[Dict[str, Any]]:
+    """Get a ticket conversation in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/tickets/{ticket_id}/conversations"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+        return response.json()
+
 def main():
     logging.info("Starting Freshdesk MCP server")
     mcp.run(transport='stdio')
