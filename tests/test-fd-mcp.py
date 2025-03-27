@@ -1,5 +1,5 @@
 import asyncio
-from freshdesk_mcp.server import get_ticket, update_ticket
+from freshdesk_mcp.server import get_ticket, update_ticket, get_ticket_conversation
 
 async def test_get_ticket():
     ticket_id = "1289" #Replace with a test ticket Id
@@ -13,6 +13,12 @@ async def test_update_ticket():
     result = await update_ticket(ticket_id, ticket_fields)
     print(result)
 
+async def test_get_ticket_conversation():
+    ticket_id = 1294 #Replace with a test ticket Id 
+    result = await get_ticket_conversation(ticket_id)
+    print(result)
+
 if __name__ == "__main__":
     asyncio.run(test_get_ticket())
     asyncio.run(test_update_ticket())
+    asyncio.run(test_get_ticket_conversation())
