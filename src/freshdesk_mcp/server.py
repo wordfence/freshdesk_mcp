@@ -85,15 +85,7 @@ async def get_ticket_fields() -> Dict[str, Any]:
 
 @mcp.tool()
 async def get_tickets(page: Optional[int] = 1, per_page: Optional[int] = 30) -> Dict[str, Any]:
-    """Get tickets from Freshdesk with pagination support.
-    
-    Args:
-        page: Page number to fetch (default: 1)
-        per_page: Number of tickets per page (default: 30, max: 100)
-    
-    Returns:
-        Dict containing tickets data and pagination information
-    """
+    """Get tickets from Freshdesk with pagination support."""
     # Validate input parameters
     if page < 1:
         return {"error": "Page number must be greater than 0"}
@@ -150,21 +142,7 @@ async def create_ticket(
     requester_id: Optional[int] = None,
     custom_fields: Optional[Dict[str, Any]] = None
 ) -> str:
-    """Create a ticket in Freshdesk.
-    
-    Args:
-        subject: Subject of the ticket
-        description: Description of the ticket
-        source: Ticket source (1-Email, 2-Portal, 3-Phone, 7-Chat, 9-Feedback Widget, 10-Outbound Email)
-        priority: Ticket priority (1-Low, 2-Medium, 3-High, 4-Urgent)
-        status: Ticket status (2-Open, 3-Pending, 4-Resolved, 5-Closed)
-        email: Email of the requester (either email or requester_id must be provided)
-        requester_id: ID of the requester (either email or requester_id must be provided)
-        custom_fields: Optional dictionary of custom fields
-    
-    Returns:
-        str: Response message indicating success or failure
-    """
+    """Create a ticket in Freshdesk"""
     # Validate requester information
     if not email and not requester_id:
         return "Error: Either email or requester_id must be provided"
@@ -231,23 +209,7 @@ async def create_ticket(
     
 @mcp.tool()
 async def update_ticket(ticket_id: int, ticket_fields: Dict[str, Any]) -> Dict[str, Any]:
-    """Update a ticket in Freshdesk with any standard or custom fields.
-    
-    Args:
-        ticket_id: ID of the ticket to update
-        **ticket_fields: Arbitrary keyword arguments for any ticket fields
-            Standard fields examples:
-            - subject: str
-            - description: str
-            - priority: int (1-4)
-            - status: int (2-5)
-            - source: int (1-10)
-            Custom fields example:
-            - custom_fields: Dict[str, Any]
-    
-    Returns:
-        Dict containing the updated ticket information or error details
-    """
+    """Update a ticket in Freshdesk."""
     if not ticket_fields:
         return {"error": "No fields provided for update"}
 
