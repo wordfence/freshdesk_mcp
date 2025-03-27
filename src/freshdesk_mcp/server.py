@@ -374,6 +374,59 @@ async def get_agents(page: Optional[int] = 1, per_page: Optional[int] = 30)-> li
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
         return response.json() 
+    
+@mcp.tool()
+async def list_contacts(page: Optional[int] = 1, per_page: Optional[int] = 30)-> list[Dict[str, Any]]:
+    """List all contacts in Freshdesk with pagination support."""
+    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/contacts"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    params = {
+        "page": page,
+        "per_page": per_page
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers, params=params)
+        return response.json() 
+
+@mcp.tool()
+async def get_contact(contact_id: int)-> Dict[str, Any]:
+    """Get a contact in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/contacts/{contact_id}"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+        return response.json()
+    
+@mcp.tool()
+async def search_contacts(query: str)-> list[Dict[str, Any]]:
+    """Search for contacts in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/contacts/autocomplete"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    params = {"term": query}
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers, params=params)
+        return response.json()
+    
+@mcp.tool()
+async def update_contact(contact_id: int, contact_fields: Dict[str, Any])-> Dict[str, Any]:
+    """Update a contact in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/contacts/{contact_id}"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    data = {}
+    for field, value in contact_fields.items():
+        data[field] = value
+    async with httpx.AsyncClient() as client:
+        response = await client.put(url, headers=headers, json=data)
+        return response.json()
+
 def main():
     logging.info("Starting Freshdesk MCP server")
     mcp.run(transport='stdio')
