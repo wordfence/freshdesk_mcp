@@ -353,6 +353,27 @@ async def update_ticket_conversation(conversation_id: int,body: str)-> Dict[str,
             return response.json()
         else:
             return f"Cannot update conversation ${response.json()}"
+        
+@mcp.tool()
+async def get_agents(page: Optional[int] = 1, per_page: Optional[int] = 30)-> list[Dict[str, Any]]:
+    """Get all agents in Freshdesk with pagination support."""
+    # Validate input parameters
+    if page < 1:
+        return {"error": "Page number must be greater than 0"}
+    
+    if per_page < 1 or per_page > 100:
+        return {"error": "Page size must be between 1 and 100"}
+    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/agents"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    params = {
+        "page": page,
+        "per_page": per_page
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers, params=params)
+        return response.json() 
 def main():
     logging.info("Starting Freshdesk MCP server")
     mcp.run(transport='stdio')
