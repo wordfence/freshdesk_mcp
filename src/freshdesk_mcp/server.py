@@ -308,6 +308,51 @@ async def get_ticket_conversation(ticket_id: int)-> list[Dict[str, Any]]:
         response = await client.get(url, headers=headers)
         return response.json()
 
+@mcp.tool()
+async def create_ticket_reply(ticket_id: int,body: str)-> Dict[str, Any]:
+    """Create a reply to a ticket in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/tickets/{ticket_id}/reply"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    data = {
+        "body": body
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, headers=headers, json=data)
+        return response.json()
+    
+@mcp.tool()
+async def create_ticket_note(ticket_id: int,body: str)-> Dict[str, Any]:
+    """Create a note for a ticket in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/tickets/{ticket_id}/notes"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    data = {
+        "body": body
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, headers=headers, json=data)
+        return response.json()
+    
+@mcp.tool()
+async def update_ticket_conversation(conversation_id: int,body: str)-> Dict[str, Any]:
+    """Update a conversation for a ticket in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/conversations/{conversation_id}"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    data = {
+        "body": body
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.put(url, headers=headers, json=data)
+        status_code = response.status_code
+        if status_code == 200:
+            return response.json()
+        else:
+            return f"Cannot update conversation ${response.json()}"
 def main():
     logging.info("Starting Freshdesk MCP server")
     mcp.run(transport='stdio')
