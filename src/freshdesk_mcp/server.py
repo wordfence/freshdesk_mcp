@@ -70,6 +70,10 @@ class TicketPriority(IntEnum):
     MEDIUM = 2
     HIGH = 3
     URGENT = 4
+class AgentTicketScope(IntEnum):
+    GLOBAL_ACCESS = 1
+    GROUP_ACCESS = 2
+    RESTRICTED_ACCESS = 3
 
 @mcp.tool()
 async def get_ticket_fields() -> Dict[str, Any]:
@@ -488,7 +492,69 @@ async def list_solution_categories()-> list[Dict[str, Any]]:
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
         return response.json()
+    
+@mcp.tool()
+async def view_agent(agent_id: int)-> Dict[str, Any]:
+    """View an agent in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/agents/{agent_id}"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    async with httpx.AsyncClient() as client:   
+        response = await client.get(url, headers=headers)
+        return response.json()
+    
+@mcp.tool()
+async def create_agent(agent_fields: Dict[str, Any]) -> Dict[str, Any]:
+    """Create an agent in Freshdesk."""
+    # Validate mandatory fields
+    if not agent_fields.get("email") or not agent_fields.get("ticket_scope"):
+        return {
+            "error": "Missing mandatory fields. Both 'email' and 'ticket_scope' are required."
+        }
+    if agent_fields.get("ticket_scope") not in [e.value for e in AgentTicketScope]:
+        return {
+            "error": "Invalid value for ticket_scope. Must be one of: " + ", ".join([e.name for e in AgentTicketScope])
+        }
 
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/agents"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(url, headers=headers, json=agent_fields)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            return {
+                "error": f"Failed to create agent: {str(e)}",
+                "details": e.response.json() if e.response else None
+            }
+
+@mcp.tool()
+async def update_agent(agent_id: int, agent_fields: Dict[str, Any]) -> Dict[str, Any]:
+    """Update an agent in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/agents/{agent_id}"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.put(url, headers=headers, json=agent_fields)
+        return response.json()
+
+@mcp.tool()
+async def search_agents(query: str) -> list[Dict[str, Any]]:
+    """Search for agents in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/agents/autocomplete?term={query}"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+        return response.json()
+    
 def main():
     logging.info("Starting Freshdesk MCP server")
     mcp.run(transport='stdio')
