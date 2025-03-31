@@ -1,6 +1,6 @@
 [project]
 name = "freshdesk-mcp"
-version = "0.2.0-rc.1"
+version = "0.2.1-rc2"
 description = "An MCP server for Freshdesk"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,6 +13,10 @@ dependencies = [
 [[project.authors]]
 name = "Gopi Krishnan"
 email = "gopi@effy.co.in"
+
+[[project.authors]]
+name = "Maanaesh Swamy"
+email = "maanaesh.s@effy.co.in"
 
 [build-system]
 requires = [ "hatchling", "setuptools", "wheel"]

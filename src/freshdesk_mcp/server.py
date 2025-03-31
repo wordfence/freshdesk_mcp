@@ -74,7 +74,7 @@ class TicketPriority(IntEnum):
 @mcp.tool()
 async def get_ticket_fields() -> Dict[str, Any]:
     """Get ticket fields from Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/ticket_fields"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/ticket_fields"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
@@ -93,7 +93,7 @@ async def get_tickets(page: Optional[int] = 1, per_page: Optional[int] = 30) -> 
     if per_page < 1 or per_page > 100:
         return {"error": "Page size must be between 1 and 100"}
 
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/tickets"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/tickets"
     
     params = {
         "page": page,
@@ -180,7 +180,7 @@ async def create_ticket(
     if custom_fields:
         data["custom_fields"] = custom_fields
 
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/tickets"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/tickets"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}",
         "Content-Type": "application/json"
@@ -213,7 +213,7 @@ async def update_ticket(ticket_id: int, ticket_fields: Dict[str, Any]) -> Dict[s
     if not ticket_fields:
         return {"error": "No fields provided for update"}
 
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/tickets/{ticket_id}"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/tickets/{ticket_id}"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}",
         "Content-Type": "application/json"
@@ -265,7 +265,7 @@ async def update_ticket(ticket_id: int, ticket_fields: Dict[str, Any]) -> Dict[s
 @mcp.tool()
 async def delete_ticket(ticket_id: int) -> str:
     """Delete a ticket in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/tickets/{ticket_id}"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/tickets/{ticket_id}"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
@@ -276,7 +276,7 @@ async def delete_ticket(ticket_id: int) -> str:
 @mcp.tool()
 async def get_ticket(ticket_id: int):
     """Get a ticket in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/tickets/{ticket_id}"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/tickets/{ticket_id}"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }   
@@ -288,7 +288,7 @@ async def get_ticket(ticket_id: int):
 @mcp.tool()
 async def search_tickets(query: str) -> Dict[str, Any]:
     """Search for tickets in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/search/tickets"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/search/tickets"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
@@ -300,7 +300,7 @@ async def search_tickets(query: str) -> Dict[str, Any]:
 @mcp.tool()
 async def get_ticket_conversation(ticket_id: int)-> list[Dict[str, Any]]:
     """Get a ticket conversation in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/tickets/{ticket_id}/conversations"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/tickets/{ticket_id}/conversations"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
@@ -311,7 +311,7 @@ async def get_ticket_conversation(ticket_id: int)-> list[Dict[str, Any]]:
 @mcp.tool()
 async def create_ticket_reply(ticket_id: int,body: str)-> Dict[str, Any]:
     """Create a reply to a ticket in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/tickets/{ticket_id}/reply"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/tickets/{ticket_id}/reply"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
@@ -325,7 +325,7 @@ async def create_ticket_reply(ticket_id: int,body: str)-> Dict[str, Any]:
 @mcp.tool()
 async def create_ticket_note(ticket_id: int,body: str)-> Dict[str, Any]:
     """Create a note for a ticket in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/tickets/{ticket_id}/notes"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/tickets/{ticket_id}/notes"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
@@ -339,7 +339,7 @@ async def create_ticket_note(ticket_id: int,body: str)-> Dict[str, Any]:
 @mcp.tool()
 async def update_ticket_conversation(conversation_id: int,body: str)-> Dict[str, Any]:
     """Update a conversation for a ticket in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/conversations/{conversation_id}"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/conversations/{conversation_id}"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
@@ -363,7 +363,7 @@ async def get_agents(page: Optional[int] = 1, per_page: Optional[int] = 30)-> li
     
     if per_page < 1 or per_page > 100:
         return {"error": "Page size must be between 1 and 100"}
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/agents"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/agents"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
@@ -378,7 +378,7 @@ async def get_agents(page: Optional[int] = 1, per_page: Optional[int] = 30)-> li
 @mcp.tool()
 async def list_contacts(page: Optional[int] = 1, per_page: Optional[int] = 30)-> list[Dict[str, Any]]:
     """List all contacts in Freshdesk with pagination support."""
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/contacts"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/contacts"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
@@ -393,7 +393,7 @@ async def list_contacts(page: Optional[int] = 1, per_page: Optional[int] = 30)->
 @mcp.tool()
 async def get_contact(contact_id: int)-> Dict[str, Any]:
     """Get a contact in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/contacts/{contact_id}"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/contacts/{contact_id}"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
@@ -404,7 +404,7 @@ async def get_contact(contact_id: int)-> Dict[str, Any]:
 @mcp.tool()
 async def search_contacts(query: str)-> list[Dict[str, Any]]:
     """Search for contacts in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/contacts/autocomplete"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/contacts/autocomplete"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
@@ -416,7 +416,7 @@ async def search_contacts(query: str)-> list[Dict[str, Any]]:
 @mcp.tool()
 async def update_contact(contact_id: int, contact_fields: Dict[str, Any])-> Dict[str, Any]:
     """Update a contact in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/contacts/{contact_id}"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/contacts/{contact_id}"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
@@ -429,7 +429,7 @@ async def update_contact(contact_id: int, contact_fields: Dict[str, Any])-> Dict
 @mcp.tool()
 async def list_canned_responses(folder_id: int)-> list[Dict[str, Any]]:
     """List all canned responses in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/canned_response_folders/{folder_id}/responses"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/canned_response_folders/{folder_id}/responses"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
@@ -443,7 +443,7 @@ async def list_canned_responses(folder_id: int)-> list[Dict[str, Any]]:
 @mcp.tool()
 async def list_canned_response_folders()-> list[Dict[str, Any]]:
     """List all canned response folders in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/canned_response_folders"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/canned_response_folders"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
@@ -455,7 +455,7 @@ async def list_canned_response_folders()-> list[Dict[str, Any]]:
 async def list_solution_articles(folder_id: int)-> list[Dict[str, Any]]:
     """List all solution articles in Freshdesk."""
     solution_articles = []
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/solutions/folders/{folder_id}/articles"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/solutions/folders/{folder_id}/articles"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
@@ -470,7 +470,7 @@ async def list_solution_folders(category_id: int)-> list[Dict[str, Any]]:
     if not category_id:
         return {"error": "Category ID is required"}
     """List all solution folders in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/solutions/categories/{category_id}/folders"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/solutions/categories/{category_id}/folders"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
@@ -481,7 +481,7 @@ async def list_solution_folders(category_id: int)-> list[Dict[str, Any]]:
 @mcp.tool()
 async def list_solution_categories()-> list[Dict[str, Any]]:
     """List all solution categories in Freshdesk."""
-    url = f"https://{FRESHDESK_DOMAIN}.freshdesk.com/api/v2/solutions/categories"
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/solutions/categories"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
