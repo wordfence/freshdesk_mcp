@@ -1,5 +1,5 @@
 import asyncio
-from freshdesk_mcp.server import get_ticket, update_ticket, get_ticket_conversation, update_ticket_conversation,get_agents, list_canned_responses, list_solution_articles, list_solution_categories,list_solution_folders
+from freshdesk_mcp.server import get_ticket, update_ticket, get_ticket_conversation, update_ticket_conversation,get_agents, list_canned_responses, list_solution_articles, list_solution_categories,list_solution_folders,list_groups,create_group
 
 async def test_get_ticket():
     ticket_id = "1289" #Replace with a test ticket Id
@@ -52,6 +52,15 @@ async def test_list_solution_articles():
     result = await list_solution_articles(folder_id)
     print(result)
 
+async def test_list_groups():
+    result = await list_groups()
+    print(result)
+async def test_create_group():
+    group_fields = {
+       
+    }
+    result = await create_group(group_fields)
+    print(result)
 if __name__ == "__main__":
     # asyncio.run(test_get_ticket())
     # asyncio.run(test_update_ticket())
@@ -61,4 +70,6 @@ if __name__ == "__main__":
     # asyncio.run(test_list_canned_responses())
     # asyncio.run(test_list_solution_articles())
     # asyncio.run(test_list_solution_folders())
-    asyncio.run(test_list_solution_categories())
+    # asyncio.run(test_list_solution_categories())
+    # asyncio.run(test_list_groups())
+    asyncio.run(test_create_group())

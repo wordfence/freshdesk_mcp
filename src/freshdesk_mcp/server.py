@@ -3,9 +3,10 @@ from mcp.server.fastmcp import FastMCP
 import logging
 import os
 import base64
-from typing import Optional, Dict, Union, Any
-from enum import IntEnum
+from typing import Optional, Dict, Union, Any, List
+from enum import IntEnum, Enum
 import re   
+from pydantic import BaseModel, Field
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -74,6 +75,39 @@ class AgentTicketScope(IntEnum):
     GLOBAL_ACCESS = 1
     GROUP_ACCESS = 2
     RESTRICTED_ACCESS = 3
+
+class UnassignedForOptions(str, Enum):
+    THIRTY_MIN = "30m"
+    ONE_HOUR = "1h"
+    TWO_HOURS = "2h"
+    FOUR_HOURS = "4h"
+    EIGHT_HOURS = "8h"
+    TWELVE_HOURS = "12h"
+    ONE_DAY = "1d"
+    TWO_DAYS = "2d"
+    THREE_DAYS = "3d"
+
+class GroupCreate(BaseModel):
+    name: str = Field(..., description="Name of the group")
+    description: Optional[str] = Field(None, description="Description of the group")
+    agent_ids: Optional[List[int]] = Field(
+        default=None, 
+        description="Array of agent user ids"
+    )
+    auto_ticket_assign: Optional[int] = Field(
+        default=0,
+        ge=0,
+        le=1,
+        description="Automatic ticket assignment type (0 or 1)"
+    )
+    escalate_to: Optional[int] = Field(
+        None,
+        description="User ID to whom escalation email is sent if ticket is unassigned"
+    )
+    unassigned_for: Optional[UnassignedForOptions] = Field(
+        default=UnassignedForOptions.THIRTY_MIN,
+        description="Time after which escalation email will be sent"
+    )
 
 @mcp.tool()
 async def get_ticket_fields() -> Dict[str, Any]:
@@ -554,7 +588,83 @@ async def search_agents(query: str) -> list[Dict[str, Any]]:
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
         return response.json()
+@mcp.tool()
+async def list_groups(page: Optional[int] = 1, per_page: Optional[int] = 30)-> list[Dict[str, Any]]:
+    """List all groups in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/groups"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    params = {
+        "page": page,
+        "per_page": per_page
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers, params=params)
+        return response.json()
     
+@mcp.tool()
+async def create_group(group_fields: Dict[str, Any]) -> Dict[str, Any]:
+    """Create a group in Freshdesk."""
+    # Validate input using Pydantic model
+    try:
+        validated_fields = GroupCreate(**group_fields)
+        # Convert to dict for API request
+        group_data = validated_fields.model_dump(exclude_none=True)
+    except Exception as e:
+        return {"error": f"Validation error: {str(e)}"}
+
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/groups"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}",
+        "Content-Type": "application/json"
+    }
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(url, headers=headers, json=group_data)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            return {
+                "error": f"Failed to create group: {str(e)}",
+                "details": e.response.json() if e.response else None
+            }
+    
+@mcp.tool()
+async def view_group(group_id: int) -> Dict[str, Any]:
+    """View a group in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/groups/{group_id}"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+        return response.json()
+    
+@mcp.tool()
+async def update_group(group_id: int, group_fields: Dict[str, Any]) -> Dict[str, Any]:
+    """Update a group in Freshdesk."""
+    try:
+        validated_fields = GroupCreate(**group_fields)
+        # Convert to dict for API request
+        group_data = validated_fields.model_dump(exclude_none=True)
+    except Exception as e:
+        return {"error": f"Validation error: {str(e)}"}
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/groups/{group_id}"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.put(url, headers=headers, json=group_data)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            return {
+                "error": f"Failed to update group: {str(e)}",
+                "details": e.response.json() if e.response else None
+            }
 def main():
     logging.info("Starting Freshdesk MCP server")
     mcp.run(transport='stdio')
