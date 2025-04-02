@@ -1,5 +1,5 @@
 import asyncio
-from freshdesk_mcp.server import get_ticket, update_ticket, get_ticket_conversation, update_ticket_conversation,get_agents, list_canned_responses, list_solution_articles, list_solution_categories,list_solution_folders,list_groups,create_group,create_contact_field
+from freshdesk_mcp.server import get_ticket, update_ticket, get_ticket_conversation, update_ticket_conversation,get_agents, list_canned_responses, list_solution_articles, list_solution_categories,list_solution_folders,list_groups,create_group,create_contact_field,create_canned_response_folder,update_canned_response_folder,create_canned_response,update_canned_response,view_canned_response
 
 async def test_get_ticket():
     ticket_id = "1289" #Replace with a test ticket Id
@@ -82,6 +82,41 @@ async def test_create_contact_field():
     }
     result = await create_contact_field(contact_field_fields)
     print(result)
+async def test_create_canned_response_folder():
+    name = "Test Folder"
+    result = await create_canned_response_folder(name)
+    print(result)
+async def test_update_canned_response_folder():
+    folder_id = 60000074861
+    name = "Test Folder1"
+    result = await update_canned_response_folder(folder_id, name)
+    print(result)
+async def test_create_canned_response():
+    canned_response_fields = {
+        "title": "Test Canned Response 2",
+        "name": "Test Canned Response 2",
+        "description": "This is a test canned response",
+        "folder_id": 60000074861,
+        "content_html": "This is a test canned response",
+        "visibility": "1"
+    }
+    result = await create_canned_response(canned_response_fields)
+    print(result)
+async def test_update_canned_response():
+    canned_response_id = 60000168320
+    canned_response_fields = {
+        "title": "Test Canned Response 5",
+        "folder_id": 60000103470,
+        "content_html": "This is a test canned response",
+        "visibility": 1
+    }
+    result = await update_canned_response(canned_response_id, canned_response_fields)
+    print(result)
+async def test_view_canned_response():
+    canned_response_id = 60000168320
+    result = await view_canned_response(canned_response_id)
+    print(result)
+
 if __name__ == "__main__":
     # asyncio.run(test_get_ticket())
     # asyncio.run(test_update_ticket())
@@ -93,4 +128,8 @@ if __name__ == "__main__":
     # asyncio.run(test_list_solution_folders())
     # asyncio.run(test_list_solution_categories())
     # asyncio.run(test_list_groups())
-    asyncio.run(test_create_contact_field())
+    # asyncio.run(test_create_canned_response_folder())
+    # asyncio.run(test_update_canned_response_folder())
+    # asyncio.run(test_create_canned_response())
+    # asyncio.run(test_view_canned_response())
+    asyncio.run(test_update_canned_response())
