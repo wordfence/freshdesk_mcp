@@ -684,6 +684,10 @@ async def update_group(group_id: int, group_fields: Dict[str, Any]) -> Dict[str,
     except Exception as e:
         return {"error": f"Validation error: {str(e)}"}
     url = f"https://{FRESHDESK_DOMAIN}/api/v2/groups/{group_id}"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    async with httpx.AsyncClient() as client:
         try:
             response = await client.put(url, headers=headers, json=group_data)
             response.raise_for_status()
