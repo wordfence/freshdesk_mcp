@@ -1,5 +1,5 @@
 import asyncio
-from freshdesk_mcp.server import get_ticket, update_ticket, get_ticket_conversation, update_ticket_conversation,get_agents, list_canned_responses, list_solution_articles, list_solution_categories,list_solution_folders,list_groups,create_group
+from freshdesk_mcp.server import get_ticket, update_ticket, get_ticket_conversation, update_ticket_conversation,get_agents, list_canned_responses, list_solution_articles, list_solution_categories,list_solution_folders,list_groups,create_group,create_contact_field
 
 async def test_get_ticket():
     ticket_id = "1289" #Replace with a test ticket Id
@@ -61,6 +61,27 @@ async def test_create_group():
     }
     result = await create_group(group_fields)
     print(result)
+async def test_create_contact_field():
+    contact_field_fields = {
+        "label": "Robot Humor Processor",
+        "label_for_customers": "Robot Humor Processor",
+        "type": "custom_dropdown",
+        "description": "Measures how well this contact understands AI jokes",
+        "required_for_agents": False,
+        "displayed_for_customers": True,
+        "customers_can_edit": True,
+        "choices": [{"value":"Still rebooting brain.exe","position":1},
+            {"value":"Laughs in binary","position":2},
+            {"value":"Dad jokes only","position":3},
+            {"value":"Gets AI humor 404: Not Found","position":4},
+            {"value":"Certified AI Comedian","position":5},
+            {"value":"Makes ChatGPT snort-laugh","position":6},
+            {"value":"Could teach HAL 9000 to smile","position":7}
+            ],
+        "position":1
+    }
+    result = await create_contact_field(contact_field_fields)
+    print(result)
 if __name__ == "__main__":
     # asyncio.run(test_get_ticket())
     # asyncio.run(test_update_ticket())
@@ -72,4 +93,4 @@ if __name__ == "__main__":
     # asyncio.run(test_list_solution_folders())
     # asyncio.run(test_list_solution_categories())
     # asyncio.run(test_list_groups())
-    asyncio.run(test_create_group())
+    asyncio.run(test_create_contact_field())
