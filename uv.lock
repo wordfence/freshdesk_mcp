@@ -83,7 +83,7 @@ wheels = [
 
 [[package]]
 name = "freshdesk-mcp"
-version = "0.2.3"
+version = "0.5.0"
 source = { editable = "." }
 dependencies = [
     { name = "build" },
