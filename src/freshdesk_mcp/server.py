@@ -109,6 +109,44 @@ class GroupCreate(BaseModel):
         description="Time after which escalation email will be sent"
     )
 
+class ContactFieldCreate(BaseModel):
+    label: str = Field(..., description="Display name for the field (as seen by agents)")
+    label_for_customers: str = Field(..., description="Display name for the field (as seen by customers)")
+    type: str = Field(
+        ...,
+        description="Type of the field",
+        pattern="^(custom_text|custom_paragraph|custom_checkbox|custom_number|custom_dropdown|custom_phone_number|custom_url|custom_date)$"
+    )
+    editable_in_signup: bool = Field(
+        default=False,
+        description="Set to true if the field can be updated by customers during signup"
+    )
+    position: int = Field(
+        default=1,
+        description="Position of the company field"
+    )
+    required_for_agents: bool = Field(
+        default=False,
+        description="Set to true if the field is mandatory for agents"
+    )
+    customers_can_edit: bool = Field(
+        default=False,
+        description="Set to true if the customer can edit the fields in the customer portal"
+    )
+    required_for_customers: bool = Field(
+        default=False,
+        description="Set to true if the field is mandatory in the customer portal"
+    )
+    displayed_for_customers: bool = Field(
+        default=False,
+        description="Set to true if the customers can see the field in the customer portal"
+    )
+    choices: Optional[List[Dict[str, Union[str, int]]]] = Field(
+        default=None,
+        description="Array of objects in format {'value': 'Choice text', 'position': 1} for dropdown choices"
+    )
+    
+
 @mcp.tool()
 async def get_ticket_fields() -> Dict[str, Any]:
     """Get ticket fields from Freshdesk."""
@@ -697,6 +735,58 @@ async def update_group(group_id: int, group_fields: Dict[str, Any]) -> Dict[str,
                 "error": f"Failed to update group: {str(e)}",
                 "details": e.response.json() if e.response else None
             }
+        
+@mcp.tool()
+async def list_contact_fields()-> list[Dict[str, Any]]:
+    """List all contact fields in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/contact_fields"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+        return response.json()
+    
+@mcp.tool()
+async def view_contact_field(contact_field_id: int) -> Dict[str, Any]:
+    """View a contact field in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/contact_fields/{contact_field_id}"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+        return response.json()
+
+@mcp.tool()
+async def create_contact_field(contact_field_fields: Dict[str, Any]) -> Dict[str, Any]:
+    """Create a contact field in Freshdesk."""
+    # Validate input using Pydantic model
+    try:
+        validated_fields = ContactFieldCreate(**contact_field_fields)
+        # Convert to dict for API request
+        contact_field_data = validated_fields.model_dump(exclude_none=True)
+    except Exception as e:  
+        return {"error": f"Validation error: {str(e)}"}
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/contact_fields"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, headers=headers, json=contact_field_data)
+        return response.json()
+    
+@mcp.tool()
+async def update_contact_field(contact_field_id: int, contact_field_fields: Dict[str, Any]) -> Dict[str, Any]:
+    """Update a contact field in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/contact_fields/{contact_field_id}"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.put(url, headers=headers, json=contact_field_fields)
+        return response.json()
+
 def main():
     logging.info("Starting Freshdesk MCP server")
     mcp.run(transport='stdio')
