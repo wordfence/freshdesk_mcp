@@ -555,6 +555,38 @@ async def search_agents(query: str) -> list[Dict[str, Any]]:
         response = await client.get(url, headers=headers)
         return response.json()
     
+@mcp.tool()
+async def create_ticket_field(ticket_field_fields: Dict[str, Any]) -> Dict[str, Any]:
+    """Create a ticket field in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/admin/ticket_fields"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, headers=headers, json=ticket_field_fields)
+        return response.json()
+@mcp.tool()
+async def view_ticket_field(ticket_field_id: int) -> Dict[str, Any]:
+    """View a ticket field in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/admin/ticket_fields/{ticket_field_id}"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+        return response.json()
+    
+@mcp.tool()
+async def update_ticket_field(ticket_field_id: int, ticket_field_fields: Dict[str, Any]) -> Dict[str, Any]:
+    """Update a ticket field in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/admin/ticket_fields/{ticket_field_id}"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.put(url, headers=headers, json=ticket_field_fields)
+        return response.json()
+
 def main():
     logging.info("Starting Freshdesk MCP server")
     mcp.run(transport='stdio')
