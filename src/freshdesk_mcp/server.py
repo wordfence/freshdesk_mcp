@@ -230,7 +230,8 @@ async def create_ticket(
     status: Union[int, str],
     email: Optional[str] = None,
     requester_id: Optional[int] = None,
-    custom_fields: Optional[Dict[str, Any]] = None
+    custom_fields: Optional[Dict[str, Any]] = None,
+    additional_fields: Optional[Dict[str, Any]] = None  # 👈 new parameter
 ) -> str:
     """Create a ticket in Freshdesk"""
     # Validate requester information
@@ -269,6 +270,10 @@ async def create_ticket(
     # Add custom fields if provided
     if custom_fields:
         data["custom_fields"] = custom_fields
+     
+     # Add any other top-level fields
+    if additional_fields:
+        data.update(additional_fields)
 
     url = f"https://{FRESHDESK_DOMAIN}/api/v2/tickets"
     headers = {
