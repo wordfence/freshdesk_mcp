@@ -983,10 +983,79 @@ async def update_contact_field(contact_field_id: int, contact_field_fields: Dict
     async with httpx.AsyncClient() as client:
         response = await client.put(url, headers=headers, json=contact_field_fields)
         return response.json()
+@mcp.tool()
+async def get_field_properties(field_name: str):
+    """Get properties of a specific field by name."""
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/ticket_fields"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    }
+    actual_field_name=field_name
+    if field_name == "type":
+        actual_field_name="ticket_type"
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+        response.raise_for_status()  # Raise error for bad status codes
+        fields = response.json()
+    # Filter the field by name
+    matched_field = next((field for field in fields if field["name"] == actual_field_name), None)
+
+    return matched_field
+        
+@mcp.prompt()
+def create_ticket(
+    subject: str,
+    description: str,
+    source: str,
+    priority: str,
+    status: str,
+    email: str
+) -> str:
+    """Create a ticket in Freshdesk"""
+    payload = {
+        "subject": subject,
+        "description": description,
+        "source": source,
+        "priority": priority,
+        "status": status,
+        "email": email,
+    }
+    return f"""
+Kindly create a ticket in Freshdesk using the following payload:
+
+{payload}
+
+If you need to retrieve information about any fields (such as allowed values or internal keys), please use the `get_field_properties()` function.
+
+Notes:
+- The "type" field is **not** a custom field; it is a standard system field.
+- The "type" field is required but should be passed as a top-level parameter, not within custom_fields.
+Make sure to reference the correct keys from `get_field_properties()` when constructing the payload.
+"""
+
+@mcp.prompt()
+def create_reply(
+    ticket_id:int,
+    reply_message: str,
+) -> str:
+    """Create a reply in Freshdesk"""
+    payload = {
+        "body":reply_message,
+    }
+    return f"""
+Kindly create a ticket reply in Freshdesk for ticket ID {ticket_id} using the following payload:
+
+{payload}
+
+Notes:
+- The "body" field must be in **HTML format** and should be **brief yet contextually complete**.
+- When composing the "body", please **review the previous conversation** in the ticket.
+- Ensure the tone and style **match the prior replies**, and that the message provides **full context** so the recipient can understand the issue without needing to re-read earlier messages.
+"""
 
 def main():
     logging.info("Starting Freshdesk MCP server")
     mcp.run(transport='stdio')
-
+    
 if __name__ == "__main__":
     main()
