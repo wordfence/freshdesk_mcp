@@ -1161,6 +1161,25 @@ async def find_company_by_name(name: str) -> Dict[str, Any]:
         except Exception as e:
             return {"error": f"An unexpected error occurred: {str(e)}"}
 
+@mcp.tool()
+async def list_company_fields() -> List[Dict[str, Any]]:
+    """List all company fields in Freshdesk."""
+    url = f"https://{FRESHDESK_DOMAIN}/api/v2/company_fields"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}",
+        "Content-Type": "application/json"
+    }
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url, headers=headers)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            return {"error": f"Failed to fetch company fields: {str(e)}"}
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}
+
 def main():
     logging.info("Starting Freshdesk MCP server")
     mcp.run(transport='stdio')
