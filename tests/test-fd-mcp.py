@@ -8,18 +8,18 @@ async def test_get_ticket():
 
 
 async def test_update_ticket():
-    ticket_id = 1289 #Replace with a test ticket Id 
+    ticket_id = 1289 #Replace with a test ticket Id
     ticket_fields = {"status": 5}
     result = await update_ticket(ticket_id, ticket_fields)
     print(result)
 
 async def test_get_ticket_conversation():
-    ticket_id = 1294 #Replace with a test ticket Id 
+    ticket_id = 1294 #Replace with a test ticket Id
     result = await get_ticket_conversation(ticket_id)
     print(result)
 
 async def test_update_ticket_conversation():
-    conversation_id = 60241927935 #Replace with a test conversation Id 
+    conversation_id = 60241927935 #Replace with a test conversation Id
     body = "This is a test reply"
     result = await update_ticket_conversation(conversation_id, body)
     print(result)
@@ -57,7 +57,7 @@ async def test_list_groups():
     print(result)
 async def test_create_group():
     group_fields = {
-       
+
     }
     result = await create_group(group_fields)
     print(result)
