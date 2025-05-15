@@ -1,6 +1,6 @@
 [project]
 name = "freshdesk-mcp"
-version = "1.0.0"
+version = "1.1.0"
 description = "An MCP server for Freshdesk"
 readme = "README.md"
 requires-python = ">=3.10"
