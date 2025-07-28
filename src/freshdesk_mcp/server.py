@@ -7,6 +7,7 @@ from typing import Optional, Dict, Union, Any, List
 from enum import IntEnum, Enum
 import re
 from pydantic import BaseModel, Field
+import json
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -16,6 +17,68 @@ mcp = FastMCP("freshdesk-mcp")
 
 FRESHDESK_API_KEY = os.getenv("FRESHDESK_API_KEY")
 FRESHDESK_DOMAIN = os.getenv("FRESHDESK_DOMAIN")
+
+
+def filter_encrypted_reports(text: str, placeholder: str = "[ENCRYPTED REPORT REMOVED]") -> str:
+    """Remove encrypted blocks between -----BEGIN REPORT----- and -----END REPORT----- tags.
+    
+    Args:
+        text: The text containing encrypted reports
+        placeholder: Text to replace the encrypted blocks with
+        
+    Returns:
+        Text with encrypted reports removed
+    """
+    if not text or "-----BEGIN REPORT-----" not in text:
+        return text
+    
+    pattern = r'-----BEGIN REPORT-----.*?-----END REPORT-----'
+    filtered_text = re.sub(pattern, placeholder, text, flags=re.DOTALL)
+    return filtered_text
+
+
+def estimate_tokens(text: str) -> int:
+    """Estimate the number of tokens in a text string.
+    
+    Uses the approximation of 1 token ≈ 4 characters.
+    
+    Args:
+        text: The text to estimate tokens for
+        
+    Returns:
+        Estimated number of tokens
+    """
+    return len(text) // 4
+
+
+def process_conversation_body(conversation: Dict[str, Any], filter_reports: bool = True, 
+                            report_placeholder: str = "[ENCRYPTED REPORT REMOVED]") -> Dict[str, Any]:
+    """Process a conversation to optionally filter encrypted reports.
+    
+    Args:
+        conversation: The conversation dictionary
+        filter_reports: Whether to filter encrypted reports
+        report_placeholder: Text to replace encrypted reports with
+        
+    Returns:
+        Processed conversation dictionary
+    """
+    if not filter_reports:
+        return conversation
+    
+    # Create a copy to avoid modifying the original
+    processed = conversation.copy()
+    
+    # Fields that might contain encrypted reports
+    fields_to_filter = ['body', 'body_text', 'description']
+    
+    for field in fields_to_filter:
+        if field in processed and processed[field]:
+            original_text = processed[field]
+            filtered_text = filter_encrypted_reports(original_text, report_placeholder)
+            processed[field] = filtered_text
+    
+    return processed
 
 
 def parse_link_header(link_header: str) -> Dict[str, Optional[int]]:
@@ -393,15 +456,220 @@ async def search_tickets(query: str) -> Dict[str, Any]:
         return response.json()
 
 @mcp.tool()
-async def get_ticket_conversation(ticket_id: int)-> list[Dict[str, Any]]:
-    """Get a ticket conversation in Freshdesk."""
+async def get_ticket_conversation(
+    ticket_id: int,
+    page: Optional[int] = 1,
+    per_page: Optional[int] = 10,
+    filter_encrypted_reports: Optional[bool] = True,
+    report_placeholder: Optional[str] = "[ENCRYPTED REPORT REMOVED]",
+    max_tokens: Optional[int] = 20000
+) -> Dict[str, Any]:
+    """Get ticket conversations with pagination and token limit support.
+    
+    Args:
+        ticket_id: The ID of the ticket
+        page: Page number (starts at 1)
+        per_page: Number of conversations per page (max 100, default 10)
+        filter_encrypted_reports: Whether to remove encrypted report blocks
+        report_placeholder: Text to replace encrypted reports with
+        max_tokens: Maximum tokens to return (default 20000, max 25000)
+        
+    Returns:
+        Dictionary containing conversations and pagination metadata
+    """
+    # Validate input parameters
+    if page < 1:
+        return {"error": "Page number must be greater than 0"}
+    
+    if per_page < 1 or per_page > 100:
+        return {"error": "Page size must be between 1 and 100"}
+    
+    if max_tokens > 25000:
+        return {"error": "Maximum tokens cannot exceed 25000"}
+    
     url = f"https://{FRESHDESK_DOMAIN}/api/v2/tickets/{ticket_id}/conversations"
-    headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
+    
+    params = {
+        "page": page,
+        "per_page": per_page
     }
+    
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}",
+        "Content-Type": "application/json"
+    }
+    
     async with httpx.AsyncClient() as client:
-        response = await client.get(url, headers=headers)
-        return response.json()
+        try:
+            response = await client.get(url, headers=headers, params=params)
+            response.raise_for_status()
+            
+            # Parse pagination from Link header
+            link_header = response.headers.get('Link', '')
+            pagination_info = parse_link_header(link_header)
+            
+            conversations = response.json()
+            
+            # Process conversations and check token limits
+            processed_conversations = []
+            total_tokens = 0
+            tokens_saved = 0
+            reports_found = 0
+            truncated = False
+            
+            for conv in conversations:
+                # Process the conversation (filter reports if requested)
+                processed_conv = process_conversation_body(
+                    conv, 
+                    filter_reports=filter_encrypted_reports,
+                    report_placeholder=report_placeholder
+                )
+                
+                # Count reports found
+                for field in ['body', 'body_text', 'description']:
+                    if field in conv and conv[field] and "-----BEGIN REPORT-----" in conv[field]:
+                        reports_found += 1
+                        # Estimate tokens saved
+                        original_tokens = estimate_tokens(conv[field])
+                        filtered_tokens = estimate_tokens(processed_conv[field])
+                        tokens_saved += (original_tokens - filtered_tokens)
+                
+                # Estimate tokens for this conversation
+                conv_json = json.dumps(processed_conv)
+                conv_tokens = estimate_tokens(conv_json)
+                
+                # Check if adding this conversation would exceed token limit
+                if total_tokens + conv_tokens > max_tokens:
+                    truncated = True
+                    break
+                
+                processed_conversations.append(processed_conv)
+                total_tokens += conv_tokens
+            
+            result = {
+                "conversations": processed_conversations,
+                "pagination": {
+                    "current_page": page,
+                    "next_page": pagination_info.get("next"),
+                    "prev_page": pagination_info.get("prev"),
+                    "per_page": per_page,
+                    "items_returned": len(processed_conversations),
+                    "has_more": pagination_info.get("next") is not None or truncated,
+                    "token_count": total_tokens,
+                    "truncated": truncated
+                }
+            }
+            
+            # Add filtering info if reports were filtered
+            if filter_encrypted_reports:
+                result["filtering"] = {
+                    "encrypted_reports_removed": True,
+                    "reports_found": reports_found,
+                    "tokens_saved": tokens_saved
+                }
+            
+            # Add warnings if needed
+            warnings = []
+            if truncated:
+                warnings.append(f"Response truncated to stay under {max_tokens} token limit. Use smaller per_page value or increase max_tokens.")
+            if len(warnings) > 0:
+                result["warnings"] = warnings
+            
+            return result
+            
+        except httpx.HTTPStatusError as e:
+            return {"error": f"Failed to fetch conversations: {str(e)}"}
+        except Exception as e:
+            return {"error": f"An unexpected error occurred: {str(e)}"}
+
+@mcp.tool()
+async def get_all_ticket_conversations(
+    ticket_id: int,
+    filter_encrypted_reports: Optional[bool] = True,
+    report_placeholder: Optional[str] = "[ENCRYPTED REPORT REMOVED]",
+    max_total_tokens: Optional[int] = 25000
+) -> Dict[str, Any]:
+    """Get all ticket conversations with automatic pagination to stay under token limit.
+    
+    This function automatically fetches multiple pages of conversations while
+    ensuring the total response stays under the token limit.
+    
+    Args:
+        ticket_id: The ID of the ticket
+        filter_encrypted_reports: Whether to remove encrypted report blocks
+        report_placeholder: Text to replace encrypted reports with
+        max_total_tokens: Maximum total tokens to return (default 25000)
+        
+    Returns:
+        Dictionary containing all conversations that fit within token limit
+    """
+    all_conversations = []
+    total_tokens = 0
+    current_page = 1
+    per_page = 10  # Start conservative
+    has_more = True
+    total_reports_found = 0
+    total_tokens_saved = 0
+    
+    while has_more and total_tokens < max_total_tokens:
+        # Calculate remaining token budget
+        remaining_tokens = max_total_tokens - total_tokens
+        
+        # Fetch a page of conversations
+        result = await get_ticket_conversation(
+            ticket_id=ticket_id,
+            page=current_page,
+            per_page=per_page,
+            filter_encrypted_reports=filter_encrypted_reports,
+            report_placeholder=report_placeholder,
+            max_tokens=remaining_tokens
+        )
+        
+        # Check for errors
+        if "error" in result:
+            return result
+        
+        # Add conversations from this page
+        conversations = result.get("conversations", [])
+        all_conversations.extend(conversations)
+        
+        # Update totals
+        pagination = result.get("pagination", {})
+        total_tokens += pagination.get("token_count", 0)
+        
+        # Update filtering stats
+        if "filtering" in result:
+            filtering = result["filtering"]
+            total_reports_found += filtering.get("reports_found", 0)
+            total_tokens_saved += filtering.get("tokens_saved", 0)
+        
+        # Check if there are more pages
+        has_more = pagination.get("has_more", False)
+        current_page += 1
+        
+        # Adjust per_page based on token usage
+        if len(conversations) > 0:
+            avg_tokens_per_conv = pagination.get("token_count", 0) / len(conversations)
+            if avg_tokens_per_conv > 0:
+                # Calculate optimal per_page for next request
+                safe_per_page = min(100, int(remaining_tokens / avg_tokens_per_conv * 0.8))
+                per_page = max(1, safe_per_page)
+    
+    return {
+        "conversations": all_conversations,
+        "summary": {
+            "total_conversations": len(all_conversations),
+            "total_pages_fetched": current_page - 1,
+            "total_token_count": total_tokens,
+            "complete": not has_more or total_tokens >= max_total_tokens
+        },
+        "filtering": {
+            "encrypted_reports_removed": filter_encrypted_reports,
+            "total_reports_found": total_reports_found,
+            "total_tokens_saved": total_tokens_saved
+        }
+    }
+
 
 @mcp.tool()
 async def create_ticket_reply(ticket_id: int,body: str)-> Dict[str, Any]:
