@@ -462,7 +462,7 @@ async def get_ticket_conversation(
     per_page: Optional[int] = 10,
     filter_encrypted_reports: Optional[bool] = True,
     report_placeholder: Optional[str] = "[ENCRYPTED REPORT REMOVED]",
-    max_tokens: Optional[int] = 20000
+    max_tokens: Optional[int] = 200000
 ) -> Dict[str, Any]:
     """Get ticket conversations with pagination and token limit support.
     
@@ -472,7 +472,7 @@ async def get_ticket_conversation(
         per_page: Number of conversations per page (max 100, default 10)
         filter_encrypted_reports: Whether to remove encrypted report blocks
         report_placeholder: Text to replace encrypted reports with
-        max_tokens: Maximum tokens to return (default 20000, max 25000)
+        max_tokens: Maximum tokens to return (default 200000)
         
     Returns:
         Dictionary containing conversations and pagination metadata
@@ -484,8 +484,8 @@ async def get_ticket_conversation(
     if per_page < 1 or per_page > 100:
         return {"error": "Page size must be between 1 and 100"}
     
-    if max_tokens > 25000:
-        return {"error": "Maximum tokens cannot exceed 25000"}
+    if max_tokens > 200000:
+        return {"error": "Maximum tokens cannot exceed 200000"}
     
     url = f"https://{FRESHDESK_DOMAIN}/api/v2/tickets/{ticket_id}/conversations"
     
@@ -587,7 +587,7 @@ async def get_all_ticket_conversations(
     ticket_id: int,
     filter_encrypted_reports: Optional[bool] = True,
     report_placeholder: Optional[str] = "[ENCRYPTED REPORT REMOVED]",
-    max_total_tokens: Optional[int] = 25000
+    max_total_tokens: Optional[int] = 200000
 ) -> Dict[str, Any]:
     """Get all ticket conversations with automatic pagination to stay under token limit.
     
@@ -598,7 +598,7 @@ async def get_all_ticket_conversations(
         ticket_id: The ID of the ticket
         filter_encrypted_reports: Whether to remove encrypted report blocks
         report_placeholder: Text to replace encrypted reports with
-        max_total_tokens: Maximum total tokens to return (default 25000)
+        max_total_tokens: Maximum total tokens to return (default 200000)
         
     Returns:
         Dictionary containing all conversations that fit within token limit
