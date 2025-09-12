@@ -81,6 +81,59 @@ def process_conversation_body(conversation: Dict[str, Any], filter_reports: bool
     return processed
 
 
+def extract_links_from_html(html: str) -> List[Dict[str, str]]:
+    """Extract anchor links from an HTML string.
+
+    Returns a list of {"text": str, "url": str} for each <a href>.
+    Uses Python's standard html.parser for zero-dependency parsing.
+    """
+    from html.parser import HTMLParser
+
+    class LinkParser(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self._in_a = False
+            self._current_href = None
+            self._current_text_parts: List[str] = []
+            self.links: List[Dict[str, str]] = []
+
+        def handle_starttag(self, tag, attrs):
+            if tag.lower() == 'a':
+                href = None
+                for k, v in attrs:
+                    if k.lower() == 'href':
+                        href = v
+                        break
+                self._in_a = True
+                self._current_href = href
+                self._current_text_parts = []
+
+        def handle_data(self, data):
+            if self._in_a and data:
+                self._current_text_parts.append(data)
+
+        def handle_endtag(self, tag):
+            if tag.lower() == 'a' and self._in_a:
+                text = ''.join(self._current_text_parts).strip()
+                href = self._current_href or ''
+                if href:
+                    self.links.append({"text": text, "url": href})
+                self._in_a = False
+                self._current_href = None
+                self._current_text_parts = []
+
+    if not html or '<a' not in html.lower():
+        return []
+
+    parser = LinkParser()
+    try:
+        parser.feed(html)
+    except Exception:
+        # Be resilient to malformed HTML; return what we could parse
+        pass
+    return parser.links
+
+
 def parse_link_header(link_header: str) -> Dict[str, Optional[int]]:
     """Parse the Link header to extract pagination information.
 
@@ -462,7 +515,9 @@ async def get_ticket_conversation(
     per_page: Optional[int] = 10,
     filter_encrypted_reports: Optional[bool] = True,
     report_placeholder: Optional[str] = "[ENCRYPTED REPORT REMOVED]",
-    max_tokens: Optional[int] = 200000
+    max_tokens: Optional[int] = 20000,
+    include_html_body: Optional[bool] = False,
+    extract_links: Optional[bool] = True
 ) -> Dict[str, Any]:
     """Get ticket conversations with pagination and token limit support.
     
@@ -472,7 +527,7 @@ async def get_ticket_conversation(
         per_page: Number of conversations per page (max 100, default 10)
         filter_encrypted_reports: Whether to remove encrypted report blocks
         report_placeholder: Text to replace encrypted reports with
-        max_tokens: Maximum tokens to return (default 200000)
+        max_tokens: Maximum tokens to return (default 20000)
         
     Returns:
         Dictionary containing conversations and pagination metadata
@@ -484,8 +539,8 @@ async def get_ticket_conversation(
     if per_page < 1 or per_page > 100:
         return {"error": "Page size must be between 1 and 100"}
     
-    if max_tokens > 200000:
-        return {"error": "Maximum tokens cannot exceed 200000"}
+    if max_tokens > 20000:
+        return {"error": "Maximum tokens cannot exceed 20000"}
     
     url = f"https://{FRESHDESK_DOMAIN}/api/v2/tickets/{ticket_id}/conversations"
     
@@ -533,6 +588,17 @@ async def get_ticket_conversation(
                         original_tokens = estimate_tokens(conv[field])
                         filtered_tokens = estimate_tokens(processed_conv[field])
                         tokens_saved += (original_tokens - filtered_tokens)
+
+                # Optionally extract links from HTML body
+                if extract_links and 'body' in processed_conv and processed_conv['body']:
+                    links = extract_links_from_html(processed_conv['body'])
+                    if links:
+                        processed_conv['links'] = links
+                
+                # Optionally drop the HTML body to reduce tokens
+                if not include_html_body and 'body' in processed_conv:
+                    # Keep links (added above) but remove the HTML markup-heavy body
+                    processed_conv.pop('body', None)
                 
                 # Estimate tokens for this conversation
                 conv_json = json.dumps(processed_conv)
@@ -587,7 +653,9 @@ async def get_all_ticket_conversations(
     ticket_id: int,
     filter_encrypted_reports: Optional[bool] = True,
     report_placeholder: Optional[str] = "[ENCRYPTED REPORT REMOVED]",
-    max_total_tokens: Optional[int] = 200000
+    max_total_tokens: Optional[int] = 20000,
+    include_html_body: Optional[bool] = False,
+    extract_links: Optional[bool] = True
 ) -> Dict[str, Any]:
     """Get all ticket conversations with automatic pagination to stay under token limit.
     
@@ -598,7 +666,7 @@ async def get_all_ticket_conversations(
         ticket_id: The ID of the ticket
         filter_encrypted_reports: Whether to remove encrypted report blocks
         report_placeholder: Text to replace encrypted reports with
-        max_total_tokens: Maximum total tokens to return (default 200000)
+        max_total_tokens: Maximum total tokens to return (default 20000)
         
     Returns:
         Dictionary containing all conversations that fit within token limit
@@ -614,6 +682,7 @@ async def get_all_ticket_conversations(
     while has_more and total_tokens < max_total_tokens:
         # Calculate remaining token budget
         remaining_tokens = max_total_tokens - total_tokens
+        logging.info(f"remaining_tokens: {remaining_tokens}")
         
         # Fetch a page of conversations
         result = await get_ticket_conversation(
@@ -622,8 +691,11 @@ async def get_all_ticket_conversations(
             per_page=per_page,
             filter_encrypted_reports=filter_encrypted_reports,
             report_placeholder=report_placeholder,
-            max_tokens=remaining_tokens
+            max_tokens=remaining_tokens,
+            include_html_body=include_html_body,
+            extract_links=extract_links
         )
+        logging.info(f"result: {result}")
         
         # Check for errors
         if "error" in result:
