@@ -134,6 +134,85 @@ def extract_links_from_html(html: str) -> List[Dict[str, str]]:
     return parser.links
 
 
+def strip_html_tags(html: str) -> str:
+    """Remove HTML tags and return readable text.
+
+    - Converts basic block/line-break tags to newlines for readability.
+    - Leaves plain strings untouched for performance.
+    """
+    if not isinstance(html, str) or '<' not in html or '>' not in html:
+        return html
+
+    from html.parser import HTMLParser
+    from html import unescape
+
+    block_tags = {
+        'p', 'div', 'section', 'article', 'header', 'footer', 'li', 'ul', 'ol',
+        'table', 'tr', 'td', 'th', 'thead', 'tbody', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'
+    }
+
+    class Stripper(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.parts: List[str] = []
+
+        def handle_starttag(self, tag, attrs):
+            t = tag.lower()
+            if t in ('br',):
+                self.parts.append('\n')
+
+        def handle_startendtag(self, tag, attrs):
+            t = tag.lower()
+            if t in ('br', 'hr'):
+                self.parts.append('\n')
+
+        def handle_data(self, data):
+            if data:
+                self.parts.append(data)
+
+        def handle_endtag(self, tag):
+            t = tag.lower()
+            if t in block_tags:
+                self.parts.append('\n')
+
+    parser = Stripper()
+    try:
+        parser.feed(html)
+    except Exception:
+        # In case of malformed HTML, fall back to a naive strip
+        import re
+        return unescape(re.sub(r'<[^>]+>', '', html))
+
+    text = ''.join(parser.parts)
+
+    # Unescape HTML entities and normalize whitespace
+    text = unescape(text)
+    # Collapse more than 2 newlines to max 2, and trim whitespace around lines
+    lines = [ln.strip() for ln in text.splitlines()]
+    collapsed = []
+    empty_streak = 0
+    for ln in lines:
+        if ln == '':
+            empty_streak += 1
+            if empty_streak <= 2:
+                collapsed.append('')
+        else:
+            empty_streak = 0
+            collapsed.append(ln)
+    return '\n'.join(collapsed).strip()
+
+
+def _strip_html_from_obj(obj: Any) -> Any:
+    """Recursively strip HTML tags from strings within dict/list structures."""
+    if isinstance(obj, str):
+        return strip_html_tags(obj)
+    if isinstance(obj, list):
+        return [_strip_html_from_obj(x) for x in obj]
+    if isinstance(obj, dict):
+        return {k: _strip_html_from_obj(v) for k, v in obj.items()}
+    return obj
+
+
 def parse_link_header(link_header: str) -> Dict[str, Optional[int]]:
     """Parse the Link header to extract pagination information.
 
@@ -497,8 +576,16 @@ async def get_ticket(ticket_id: int):
         return response.json()
 
 @mcp.tool()
-async def search_tickets(query: str, quantity: int | None = None) -> Dict[str, Any] | List[Dict[str, Any]]:
-    """Search for tickets in Freshdesk."""
+async def search_tickets(
+    query: str,
+    quantity: int | None = None,
+    strip_html: Optional[bool] = True,
+) -> Dict[str, Any] | List[Dict[str, Any]]:
+    """Search for tickets in Freshdesk.
+
+    If strip_html is True, removes HTML tags from each item in the
+    response's "results" array for cleaner, token‑efficient output.
+    """
     url = f"https://{FRESHDESK_DOMAIN}/api/v2/search/tickets"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
@@ -506,11 +593,17 @@ async def search_tickets(query: str, quantity: int | None = None) -> Dict[str, A
     params = {"query": query}
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
-        if quantity:
-            print(response.json().keys())
-            return response.json()["results"][:quantity]
-        else:
-            return response.json()
+        data = response.json()
+
+    # Clean up HTML tags in results, if present
+    if strip_html and isinstance(data, dict) and isinstance(data.get("results"), list):
+        cleaned = [_strip_html_from_obj(item) for item in data["results"]]
+        data["results"] = cleaned
+
+    if quantity is not None and isinstance(data, dict) and isinstance(data.get("results"), list):
+        return data["results"][:quantity]
+
+    return data
 
 @mcp.tool()
 async def get_ticket_conversation(
