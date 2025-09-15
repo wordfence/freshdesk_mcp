@@ -508,7 +508,7 @@ async def search_tickets(query: str, quantity: int | None = None) -> Dict[str, A
         response = await client.get(url, headers=headers, params=params)
         if quantity:
             print(response.json().keys())
-            return response.json()["results"][0:quantity - 1]
+            return response.json()["results"][:quantity]
         else:
             return response.json()
 
