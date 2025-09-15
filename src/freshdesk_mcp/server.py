@@ -497,7 +497,7 @@ async def get_ticket(ticket_id: int):
         return response.json()
 
 @mcp.tool()
-async def search_tickets(query: str, quantity: int | None = None) -> Dict[str, Any]:
+async def search_tickets(query: str, quantity: int | None = None) -> Dict[str, Any] | List[Dict[str, Any]]:
     """Search for tickets in Freshdesk."""
     url = f"https://{FRESHDESK_DOMAIN}/api/v2/search/tickets"
     headers = {
@@ -507,6 +507,7 @@ async def search_tickets(query: str, quantity: int | None = None) -> Dict[str, A
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
         if quantity:
+            print(response.json().keys())
             return response.json()["results"][0:quantity - 1]
         else:
             return response.json()
