@@ -8,143 +8,40 @@ An MCP server implementation that integrates with Freshdesk, enabling AI models 
 - **Freshdesk Integration**: Seamless interaction with Freshdesk API endpoints
 - **AI Model Support**: Enables AI models to perform support operations through Freshdesk
 - **Automated Ticket Management**: Handle ticket creation, updates, and responses
+- **Health Endpoint**: `server.info` reports version and readiness
+- **Consistent Schemas**: Standardized tool responses with `success`, `data`, `pagination`, `warnings`, `error`
+- **Resilience**: Built‑in retries, timeouts, and rate‑limit handling
 
 ## Components
 
 ### Tools
 
-The server offers several tools for Freshdesk operations:
+The server offers tools for Freshdesk operations (read/write), and discovery helpers to aid LLM tool selection. All tools return a consistent shape: `{ success, data, pagination?, warnings?, error? }`.
 
-- `create_ticket`: Create new support tickets
-  - **Inputs**:
-    - `subject` (string, required): Ticket subject
-    - `description` (string, required): Ticket description
-    - `source` (number, required): Ticket source code
-    - `priority` (number, required): Ticket priority level
-    - `status` (number, required): Ticket status code
-    - `email` (string, optional): Email of the requester
-    - `requester_id` (number, optional): ID of the requester
-    - `custom_fields` (object, optional): Custom fields to set on the ticket
-    - `additional_fields` (object, optional): Additional top-level fields
+Naming and discovery:
+- Tool names follow a `domain.verb` convention (e.g., `tickets.create`, `contacts.search`).
+Discovery helpers:
+- `tools.list` — list available tools with summaries and doc paths
+- `tools.search(query, limit?)` — search by name/keywords/summary
+- `tools.explain(name)` — return catalog entry plus full markdown docs
 
-- `update_ticket`: Update existing tickets
-  - **Inputs**:
-    - `ticket_id` (number, required): ID of the ticket to update
-    - `ticket_fields` (object, required): Fields to update
+Documentation:
+- Short, LLM-focused docs live under `docs/` (e.g., docs/tickets.create.md)
+- Snapshot of Freshworks REST docs: `docs/source/freshworks_support_ticket_rest_apis.html`
 
-- `delete_ticket`: Delete a ticket
-  - **Inputs**:
-    - `ticket_id` (number, required): ID of the ticket to delete
+The server’s main tools include (see `docs/` for details):
 
-- `search_tickets`: Search for tickets based on criteria
-  - **Inputs**:
-    - `query` (string, required): Search query string
-
-- `get_ticket_fields`: Get all ticket fields
-  - **Inputs**:
-    - None
-
-- `get_tickets`: Get all tickets
-  - **Inputs**:
-    - `page` (number, optional): Page number to fetch
-    - `per_page` (number, optional): Number of tickets per page
-
-- `get_ticket`: Get a single ticket
-  - **Inputs**:
-    - `ticket_id` (number, required): ID of the ticket to get
-
-- `get_ticket_conversation`: Get conversation for a ticket
-  - **Inputs**:
-    - `ticket_id` (number, required): ID of the ticket
-
-- `create_ticket_reply`: Reply to a ticket
-  - **Inputs**:
-    - `ticket_id` (number, required): ID of the ticket
-    - `body` (string, required): Content of the reply
-
-- `create_ticket_note`: Add a note to a ticket
-  - **Inputs**:
-    - `ticket_id` (number, required): ID of the ticket
-    - `body` (string, required): Content of the note
-
-- `update_ticket_conversation`: Update a conversation
-  - **Inputs**:
-    - `conversation_id` (number, required): ID of the conversation
-    - `body` (string, required): Updated content
-
-- `view_ticket_summary`: Get the summary of a ticket
-  - **Inputs**:
-    - `ticket_id` (number, required): ID of the ticket
-
-- `update_ticket_summary`: Update the summary of a ticket
-  - **Inputs**:
-    - `ticket_id` (number, required): ID of the ticket
-    - `body` (string, required): New summary content
-
-- `delete_ticket_summary`: Delete the summary of a ticket
-  - **Inputs**:
-    - `ticket_id` (number, required): ID of the ticket
-
-- `get_agents`: Get all agents
-  - **Inputs**:
-    - `page` (number, optional): Page number
-    - `per_page` (number, optional): Number of agents per page
-
-- `view_agent`: Get a single agent
-  - **Inputs**:
-    - `agent_id` (number, required): ID of the agent
-
-- `create_agent`: Create a new agent
-  - **Inputs**:
-    - `agent_fields` (object, required): Agent details
-
-- `update_agent`: Update an agent
-  - **Inputs**:
-    - `agent_id` (number, required): ID of the agent
-    - `agent_fields` (object, required): Fields to update
-
-- `search_agents`: Search for agents
-  - **Inputs**:
-    - `query` (string, required): Search query
-
-- `list_contacts`: Get all contacts
-  - **Inputs**:
-    - `page` (number, optional): Page number
-    - `per_page` (number, optional): Contacts per page
-
-- `get_contact`: Get a single contact
-  - **Inputs**:
-    - `contact_id` (number, required): ID of the contact
-
-- `search_contacts`: Search for contacts
-  - **Inputs**:
-    - `query` (string, required): Search query
-
-- `update_contact`: Update a contact
-  - **Inputs**:
-    - `contact_id` (number, required): ID of the contact
-    - `contact_fields` (object, required): Fields to update
-
-- `list_companies`: Get all companies
-  - **Inputs**:
-    - `page` (number, optional): Page number
-    - `per_page` (number, optional): Companies per page
-
-- `view_company`: Get a single company
-  - **Inputs**:
-    - `company_id` (number, required): ID of the company
-
-- `search_companies`: Search for companies
-  - **Inputs**:
-    - `query` (string, required): Search query
-
-- `find_company_by_name`: Find a company by name
-  - **Inputs**:
-    - `name` (string, required): Company name
-
-- `list_company_fields`: Get all company fields
-  - **Inputs**:
-    - None
+- Tickets: `tickets.create`, `tickets.update`, `tickets.delete`, `tickets.get`, `tickets.list`, `tickets.search`
+- Ticket conversations: `tickets.conversations.list` (multi-page with token budget and resume metadata), `tickets.reply.create`, `tickets.note.create`, `tickets.conversation.update`
+- Ticket summaries: `tickets.summary.get`, `tickets.summary.update`, `tickets.summary.delete`
+- Ticket fields: `fields.tickets.list`, `fields.tickets.create`, `fields.tickets.get`, `fields.tickets.update`, `fields.tickets.get_property`
+- Contacts: `contacts.list`, `contacts.get`, `contacts.search`, `contacts.update`
+- Contact fields: `fields.contacts.list`, `fields.contacts.get`, `fields.contacts.create`, `fields.contacts.update`
+- Companies: `companies.list`, `companies.get`, `companies.search`, `companies.find_by_name`, `fields.companies.list`
+- Agents: `agents.list`, `agents.get`, `agents.search`, `agents.create`, `agents.update`
+- Groups: `groups.list`, `groups.get`, `groups.create`, `groups.update`
+- Canned responses: `canned.folders.list`, `canned.folders.create`, `canned.folders.update`, `canned.list`, `canned.get`, `canned.create`, `canned.update`
+- Solutions: `solutions.categories.list`, `solutions.categories.get`, `solutions.categories.create`, `solutions.categories.update`, `solutions.folders.list`, `solutions.folders.get`, `solutions.folders.create`, `solutions.folders.update`, `solutions.articles.list`, `solutions.articles.get`, `solutions.articles.create`, `solutions.articles.update`
 
 ## Getting Started
 
@@ -190,6 +87,7 @@ npx -y @smithery/cli install @effytech/freshdesk_mcp --client claude
 **Important Notes**:
 - Replace `YOUR_FRESHDESK_API_KEY` with your actual Freshdesk API key
 - Replace `YOUR_FRESHDESK_DOMAIN` with your Freshdesk domain (e.g., `yourcompany.freshdesk.com`)
+ - Ensure `FRESHDESK_DOMAIN` does not include a scheme (no `https://`)
 
 ## Example Operations
 
@@ -215,6 +113,7 @@ uvx freshdesk-mcp --env FRESHDESK_API_KEY=<your_api_key> --env FRESHDESK_DOMAIN=
 - Ensure proper network connectivity to Freshdesk servers
 - Check API rate limits and quotas
 - Verify the `uvx` command is available in your PATH
+- Use `tools.search("<goal>")` or `tools.list` to locate the right tool
 
 ## License
 
