@@ -1,23 +1,22 @@
 [project]
 name = "freshdesk-mcp"
-version = "1.2.0"
+version = "2.0.0"
 description = "An MCP server for Freshdesk"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "build>=1.2.2.post1",
-    "httpx==0.28.1",
-    "mcp[cli]>=1.3.0",
-    "pydantic>=2.10.6",
+    "build~=1.3",
+    "httpx~=0.28",
+    "mcp[cli]~=1.14",
+    "pydantic~=2.11",
 ]
 
-[[project.authors]]
-name = "Gopi Krishnan"
-email = "gopi@effy.co.in"
-
-[[project.authors]]
-name = "Maanaesh Swamy"
-email = "maanaesh.s@effy.co.in"
+authors = [
+  { name = "Gopi Krishnan", email = "gopi@effy.co.in" },
+  { name = "Maanaesh Swamy", email = "maanaesh.s@effy.co.in" },
+  { name = "Scott Bisker", email = "scott@defiant.com" },
+  { name = "Brian Curran", email = "brian@defiant.com" }
+]
 
 [build-system]
 requires = [ "hatchling", "setuptools", "wheel"]
