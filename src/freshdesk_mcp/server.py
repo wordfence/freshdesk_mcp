@@ -109,12 +109,20 @@ async def _async_sleep(seconds: float) -> None:
     import asyncio
     await asyncio.sleep(seconds)
 
-def _ok(data: Any, *, pagination: Optional[Dict[str, Any]] = None, warnings: Optional[List[str]] = None) -> Dict[str, Any]:
+def _ok(
+    data: Any,
+    *,
+    pagination: Optional[Dict[str, Any]] = None,
+    warnings: Optional[List[str]] = None,
+    next_call: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
     out: Dict[str, Any] = {"success": True, "data": data}
     if pagination is not None:
         out["pagination"] = pagination
     if warnings:
         out["warnings"] = warnings
+    if next_call is not None:
+        out["next_call"] = next_call
     return out
 
 def _err(err_type: str, message: str, *, details: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -142,9 +150,9 @@ _TOOL_CATALOG: List[Dict[str, Any]] = [
     {"name": "tickets.update", "summary": "Update fields on an existing ticket (status, priority, assignee, custom_fields).", "use_when": "Modify existing tickets.", "returns": "success, data: { message, ticket }", "safety": "write", "keywords": ["ticket", "update", "status"], "docs": "docs/tickets.update.md"},
     {"name": "tickets.delete", "summary": "Delete a ticket by id.", "use_when": "Remove a mistaken or test ticket.", "returns": "success, data: { message }", "safety": "write", "keywords": ["ticket", "delete"], "docs": "docs/tickets.delete.md"},
     {"name": "tickets.get", "summary": "Fetch a single ticket by id.", "use_when": "Get ticket details.", "returns": "success, data: ticket", "safety": "read", "keywords": ["ticket", "view", "get"], "docs": "docs/tickets.get.md"},
-    {"name": "tickets.list", "summary": "List tickets with pagination.", "use_when": "Browse tickets.", "returns": "success, data: { tickets, pagination }", "safety": "read", "keywords": ["ticket", "list", "paginate"], "docs": "docs/tickets.list.md"},
+    {"name": "tickets.list", "summary": "List tickets with pagination.", "use_when": "Browse tickets.", "returns": "success, data: { tickets, pagination }, next_call?", "safety": "read", "keywords": ["ticket", "list", "paginate"], "docs": "docs/tickets.list.md"},
     {"name": "tickets.search", "summary": "Search tickets using Freshdesk query syntax; optional HTML stripping.", "use_when": "Find tickets by criteria.", "returns": "success, data: { results }", "safety": "read", "keywords": ["ticket", "search", "query"], "docs": "docs/tickets.search.md"},
-    {"name": "tickets.conversations.list", "summary": "List conversations across pages under a global token budget.", "use_when": "Read ticket history; receives summary and resume info.", "returns": "success, data: { conversations, summary, resume }", "safety": "read", "keywords": ["conversation", "replies", "paginate"], "docs": "docs/tickets.conversations.md"},
+    {"name": "tickets.conversations.list", "summary": "List conversations across pages under a global token budget.", "use_when": "Read ticket history; receives summary, resume info, and pagination.", "returns": "success, data: { conversations, summary, resume }, pagination: { next_page, prev_page?, has_more }, next_call?", "safety": "read", "keywords": ["conversation", "replies", "paginate"], "docs": "docs/tickets.conversations.md"},
     {"name": "tickets.reply.create", "summary": "Add a public reply to a ticket.", "use_when": "Respond to requester.", "returns": "success, data: reply", "safety": "write", "keywords": ["reply", "message"], "docs": "docs/tickets.reply.md"},
     {"name": "tickets.note.create", "summary": "Add a private note to a ticket.", "use_when": "Internal note.", "returns": "success, data: note", "safety": "write", "keywords": ["note", "internal"], "docs": "docs/tickets.note.md"},
     {"name": "tickets.conversation.update", "summary": "Update a conversation body by conversation id.", "use_when": "Fix or amend a prior message.", "returns": "success, data: conversation", "safety": "write", "keywords": ["conversation", "update"], "docs": "docs/tickets.conversation.update.md"},
@@ -165,26 +173,26 @@ _TOOL_CATALOG: List[Dict[str, Any]] = [
     {"name": "fields.companies.list", "summary": "List company fields.", "use_when": "Build company payloads.", "returns": "success, data: [fields]", "safety": "read", "keywords": ["fields", "companies"], "docs": "docs/companies.fields.md"},
 
     # Contacts
-    {"name": "contacts.list", "summary": "List contacts with pagination.", "use_when": "Browse contacts.", "returns": "success, data: { contacts, pagination }", "safety": "read", "keywords": ["contacts", "list"], "docs": "docs/contacts.list.md"},
+    {"name": "contacts.list", "summary": "List contacts with pagination.", "use_when": "Browse contacts.", "returns": "success, data: { contacts, pagination }, next_call?", "safety": "read", "keywords": ["contacts", "list"], "docs": "docs/contacts.list.md"},
     {"name": "contacts.get", "summary": "Get a contact by id.", "use_when": "Read contact details.", "returns": "success, data: contact", "safety": "read", "keywords": ["contacts", "get"], "docs": "docs/contacts.get.md"},
     {"name": "contacts.search", "summary": "Autocomplete contacts by term.", "use_when": "Find a contact by name/email.", "returns": "success, data: [...]", "safety": "read", "keywords": ["contacts", "search"], "docs": "docs/contacts.search.md"},
     {"name": "contacts.update", "summary": "Update a contact by id.", "use_when": "Modify a contact.", "returns": "success, data: contact", "safety": "write", "keywords": ["contacts", "update"], "docs": "docs/contacts.update.md"},
 
     # Companies
-    {"name": "companies.list", "summary": "List companies with pagination.", "use_when": "Browse companies.", "returns": "success, data: { companies, pagination }", "safety": "read", "keywords": ["companies", "list"], "docs": "docs/companies.list.md"},
+    {"name": "companies.list", "summary": "List companies with pagination.", "use_when": "Browse companies.", "returns": "success, data: { companies, pagination }, next_call?", "safety": "read", "keywords": ["companies", "list"], "docs": "docs/companies.list.md"},
     {"name": "companies.get", "summary": "Get a company by id.", "use_when": "Read company details.", "returns": "success, data: company", "safety": "read", "keywords": ["companies", "get"], "docs": "docs/companies.get.md"},
     {"name": "companies.search", "summary": "Autocomplete companies by name.", "use_when": "Find a company.", "returns": "success, data: [...]", "safety": "read", "keywords": ["companies", "search"], "docs": "docs/companies.search.md"},
     {"name": "companies.find_by_name", "summary": "Find a company by name.", "use_when": "Find a specific company.", "returns": "success, data: [...]", "safety": "read", "keywords": ["companies", "find"], "docs": "docs/companies.search.md"},
 
     # Agents
-    {"name": "agents.list", "summary": "List agents with pagination.", "use_when": "Browse agents.", "returns": "success, data: { agents, pagination }", "safety": "read", "keywords": ["agents", "list"], "docs": "docs/agents.list.md"},
+    {"name": "agents.list", "summary": "List agents with pagination.", "use_when": "Browse agents.", "returns": "success, data: { agents, pagination }, next_call?", "safety": "read", "keywords": ["agents", "list"], "docs": "docs/agents.list.md"},
     {"name": "agents.get", "summary": "Get an agent by id.", "use_when": "Read agent details.", "returns": "success, data: agent", "safety": "read", "keywords": ["agents", "get"], "docs": "docs/agents.get.md"},
     {"name": "agents.search", "summary": "Autocomplete agents by term.", "use_when": "Find an agent.", "returns": "success, data: [...]", "safety": "read", "keywords": ["agents", "search"], "docs": "docs/agents.search.md"},
     {"name": "agents.create", "summary": "Create a new agent.", "use_when": "Provision an agent.", "returns": "success, data: agent", "safety": "write", "keywords": ["agents", "create"], "docs": "docs/agents.create.md"},
     {"name": "agents.update", "summary": "Update an agent by id.", "use_when": "Modify agent.", "returns": "success, data: agent", "safety": "write", "keywords": ["agents", "update"], "docs": "docs/agents.update.md"},
 
     # Groups
-    {"name": "groups.list", "summary": "List groups with pagination.", "use_when": "Browse groups.", "returns": "success, data: { groups, pagination }", "safety": "read", "keywords": ["groups", "list"], "docs": "docs/groups.list.md"},
+    {"name": "groups.list", "summary": "List groups with pagination.", "use_when": "Browse groups.", "returns": "success, data: { groups, pagination }, next_call?", "safety": "read", "keywords": ["groups", "list"], "docs": "docs/groups.list.md"},
     {"name": "groups.get", "summary": "Get a group by id.", "use_when": "Read group details.", "returns": "success, data: group", "safety": "read", "keywords": ["groups", "get"], "docs": "docs/groups.get.md"},
     {"name": "groups.create", "summary": "Create a group.", "use_when": "Provision a group.", "returns": "success, data: group", "safety": "write", "keywords": ["groups", "create"], "docs": "docs/groups.create.md"},
     {"name": "groups.update", "summary": "Update a group.", "use_when": "Modify group.", "returns": "success, data: group", "safety": "write", "keywords": ["groups", "update"], "docs": "docs/groups.update.md"},
@@ -645,12 +653,16 @@ async def tickets_list(
         link_header = response.headers.get("Link", "")
         pagination_info = parse_link_header(link_header)
         tickets = response.json()
+        next_page = pagination_info.get("next")
         return _ok({"tickets": tickets}, pagination={
             "current_page": page,
-            "next_page": pagination_info.get("next"),
+            "next_page": next_page,
             "prev_page": pagination_info.get("prev"),
             "per_page": per_page,
-        })
+        }, next_call=(
+            {"tool": "tickets.list", "arguments": {"page": next_page, "per_page": per_page}}
+            if next_page is not None else None
+        ))
     except httpx.HTTPStatusError as e:
         return _err("http_error", "Failed to fetch tickets", details={"status": e.response.status_code})
     except Exception as e:
@@ -824,6 +836,8 @@ async def tickets_conversations_list(
 
     This function fetches successive pages starting from `page`, using a constant `per_page`,
     until either the global token budget (`max_tokens`) is reached or no more pages are available.
+    Client paging: while `pagination.has_more` (or `resume.has_more`) is true, call this tool
+    again with `page = pagination.next_page` and the same `per_page` until `next_page` is null.
 
     Parameters
     - ticket_id: The ID of the ticket
@@ -836,7 +850,7 @@ async def tickets_conversations_list(
     - extract_links: Extract anchor links into a `links` array
 
     Returns
-    - success, data: { conversations, summary, filtering?, resume }, warnings?
+    - success, data: { conversations, summary, filtering?, resume }, warnings?, pagination, next_call?
       - summary: { total_conversations, total_pages_fetched, total_token_count, complete }
       - resume: {
           has_more: bool,
@@ -844,9 +858,16 @@ async def tickets_conversations_list(
           next_page: int | null,
           last_conversation_id: int | null
         }
+      - pagination: { has_more: bool, next_page: int|null, prev_page?: int|null }
+      - next_call: If more data remains, a convenience hint:
+          { tool: "tickets.conversations.list", arguments: { ticket_id, page, per_page } }
 
     Resume guidance
-    - Keep `per_page` constant between runs to preserve page alignment.
+    - CRITICAL: NEVER change `per_page` between successive calls in the same
+      paging session. Changing it will misalign pages and can cause skipped or
+      duplicated conversations. Always reuse the exact `per_page` value you
+      started with. If you must change it, restart from page 1 or rebuild a
+      client-side seen‑ID set and re-fetch overlapping pages.
     - When resuming on `resume.next_page`, scan that page's conversations to find
       the item whose `id == resume.last_conversation_id` and only process the
       items that appear AFTER that anchor in the page's returned order. If the
@@ -933,7 +954,18 @@ async def tickets_conversations_list(
                             "total_reports_found": reports_found_total,
                             "total_tokens_saved": tokens_saved_total,
                         }
-                    }, warnings=warnings)
+                    }, pagination={
+                        "has_more": True,
+                        "next_page": next_page,
+                        "prev_page": pagination_info.get("prev"),
+                    }, warnings=warnings, next_call={
+                        "tool": "tickets.conversations.list",
+                        "arguments": {
+                            "ticket_id": ticket_id,
+                            "page": next_page,
+                            "per_page": per_page,
+                        }
+                    })
 
                 all_conversations.append(processed_conv)
                 total_tokens += conv_tokens
@@ -969,7 +1001,14 @@ async def tickets_conversations_list(
                 "total_reports_found": reports_found_total,
                 "total_tokens_saved": tokens_saved_total,
             }
-        })
+        }, pagination={
+            "has_more": has_more,
+            "next_page": current_page if has_more else None,
+            # prev_page is not strictly required for forward paging; can be derived by clients
+        }, next_call=(
+            {"tool": "tickets.conversations.list", "arguments": {"ticket_id": ticket_id, "page": current_page, "per_page": per_page}}
+            if has_more else None
+        ))
     except httpx.HTTPStatusError as e:
         return _err("http_error", "Failed to fetch conversations", details={"status": e.response.status_code, "ticket_id": ticket_id})
     except Exception as e:
@@ -1025,12 +1064,16 @@ async def agents_list(
         resp = await _request("GET", "/agents", params=params)
         link_header = resp.headers.get("Link", "")
         pagination_info = parse_link_header(link_header)
+        next_page = pagination_info.get("next")
         return _ok({"agents": resp.json()}, pagination={
             "current_page": page,
-            "next_page": pagination_info.get("next"),
+            "next_page": next_page,
             "prev_page": pagination_info.get("prev"),
             "per_page": per_page,
-        })
+        }, next_call=(
+            {"tool": "agents.list", "arguments": {"page": next_page, "per_page": per_page}}
+            if next_page is not None else None
+        ))
     except httpx.HTTPStatusError as e:
         return _err("http_error", "Failed to fetch agents", details={"status": e.response.status_code})
     except Exception as e:
@@ -1047,12 +1090,16 @@ async def contacts_list(
         resp = await _request("GET", "/contacts", params=params)
         link_header = resp.headers.get("Link", "")
         pagination_info = parse_link_header(link_header)
+        next_page = pagination_info.get("next")
         return _ok({"contacts": resp.json()}, pagination={
             "current_page": page,
-            "next_page": pagination_info.get("next"),
+            "next_page": next_page,
             "prev_page": pagination_info.get("prev"),
             "per_page": per_page,
-        })
+        }, next_call=(
+            {"tool": "contacts.list", "arguments": {"page": next_page, "per_page": per_page}}
+            if next_page is not None else None
+        ))
     except httpx.HTTPStatusError as e:
         return _err("http_error", "Failed to fetch contacts", details={"status": e.response.status_code})
     except Exception as e:
@@ -1387,12 +1434,16 @@ async def list_groups(page: Annotated[int, Field(ge=1, description="Page number"
         resp = await _request("GET", "/groups", params=params)
         link_header = resp.headers.get("Link", "")
         pagination_info = parse_link_header(link_header)
+        next_page = pagination_info.get("next")
         return _ok({"groups": resp.json()}, pagination={
             "current_page": page,
-            "next_page": pagination_info.get("next"),
+            "next_page": next_page,
             "prev_page": pagination_info.get("prev"),
             "per_page": per_page,
-        })
+        }, next_call=(
+            {"tool": "groups.list", "arguments": {"page": next_page, "per_page": per_page}}
+            if next_page is not None else None
+        ))
     except httpx.HTTPStatusError as e:
         return _err("http_error", "Failed to list groups", details={"status": e.response.status_code})
     except Exception as e:
@@ -1612,12 +1663,16 @@ async def list_companies(
         link_header = response.headers.get('Link', '')
         pagination_info = parse_link_header(link_header)
         companies = response.json()
+        next_page = pagination_info.get("next")
         return _ok({"companies": companies}, pagination={
             "current_page": page,
-            "next_page": pagination_info.get("next"),
+            "next_page": next_page,
             "prev_page": pagination_info.get("prev"),
             "per_page": per_page
-        })
+        }, next_call=(
+            {"tool": "companies.list", "arguments": {"page": next_page, "per_page": per_page}}
+            if next_page is not None else None
+        ))
     except httpx.HTTPStatusError as e:
         return _err("http_error", "Failed to fetch companies", details={"status": e.response.status_code})
     except Exception as e:
