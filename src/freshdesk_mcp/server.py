@@ -834,46 +834,71 @@ async def tickets_conversations_list(
 ) -> Dict[str, Any]:
     """List ticket conversations across multiple pages under a global token budget.
 
-    This function fetches successive pages starting from `page`, using a constant `per_page`,
-    until either the global token budget (`max_tokens`) is reached or no more pages are available.
-    Client paging: while `pagination.has_more` (or `resume.has_more`) is true, call this tool
-    again with `page = pagination.next_page` and the same `per_page` until `next_page` is null.
+    The server walks successive Freshdesk pages starting from `page`, reusing the
+    exact `per_page` supplied, until either every conversation has been returned or
+    the caller's token budget is exhausted. Every response includes machine-readable
+    paging metadata (`paging`, `resume`, `delivery_state`) so MCP clients can safely
+    detect partial pages, honour the resume anchor, and request subsequent pages.
 
     Parameters
-    - ticket_id: The ID of the ticket
-    - page: Starting page number (>=1)
-    - per_page: Conversations per page (1–100), constant during the run
-    - filter_encrypted_reports: Remove blocks between BEGIN/END REPORT tags
-    - report_placeholder: Placeholder used when filtering encrypted blocks
-    - max_tokens: Global token budget across pages (1–20000)
-    - include_html_body: Include raw HTML body (default false)
-    - extract_links: Extract anchor links into a `links` array
+    - ticket_id: The ID of the ticket.
+    - page: Starting page number (>=1).
+    - per_page: Conversations per page (1–100); must remain constant for the session.
+    - filter_encrypted_reports: Remove blocks between BEGIN/END REPORT tags.
+    - report_placeholder: Placeholder used when filtering encrypted blocks.
+    - max_tokens: Global token budget across pages (1–20000).
+    - include_html_body: Include raw HTML body (default false).
+    - extract_links: Extract anchor links into a `links` array.
 
     Returns
-    - success, data: { conversations, summary, filtering?, resume }, warnings?, pagination, next_call?
-      - summary: { total_conversations, total_pages_fetched, total_token_count, complete }
-      - resume: {
-          has_more: bool,
-          exhausted_token_budget: bool,
-          next_page: int | null,
-          last_conversation_id: int | null
+    - success, data: {
+        conversations,
+        summary,
+        filtering?,
+        resume,
+        paging,
+        delivery_state,
+        guidance
+      }, warnings?, pagination, next_call?
+      - summary: {
+          total_conversations,
+          total_pages_fetched,
+          total_token_count,
+          complete,
+          ordering
         }
+      - resume: {
+          has_more,
+          exhausted_token_budget,
+          next_page?,
+          last_conversation_id?,
+          anchor?,
+          reason
+        }
+      - paging: {
+          start_page,
+          requested_per_page,
+          pages_returned,
+          last_page,
+          last_page_count,
+          total_conversations_returned,
+          remaining_token_budget,
+          last_page_truncated,
+          page_details: [ { page, delivered_count, expected_count, truncated, truncated_reason? } ]
+        }
+      - delivery_state: { truncated: bool, reason?: str }
+      - guidance: [str]
       - pagination: { has_more: bool, next_page: int|null, prev_page?: int|null }
-      - next_call: If more data remains, a convenience hint:
-          { tool: "tickets_conversations_list", arguments: { ticket_id, page, per_page } }
+      - next_call: If more data remains, a convenience hint with the proper arguments.
 
-    Resume guidance
-    - CRITICAL: NEVER change `per_page` between successive calls in the same
-      paging session. Changing it will misalign pages and can cause skipped or
-      duplicated conversations. Always reuse the exact `per_page` value you
-      started with. If you must change it, restart from page 1 or rebuild a
-      client-side seen‑ID set and re-fetch overlapping pages.
-    - When resuming on `resume.next_page`, scan that page's conversations to find
-      the item whose `id == resume.last_conversation_id` and only process the
-      items that appear AFTER that anchor in the page's returned order. If the
-      anchor is not found (content changed), process all items on the page.
-    - For extra safety against reordering or merges, maintain a client-side set
-      of seen conversation IDs and skip already-processed IDs.
+    Resume guidance (also surfaced in `guidance`)
+    - Keep `per_page` constant across the entire paging session. Changing it midstream
+      will misalign anchors and can cause skipped or duplicated conversations.
+    - When resuming, call `tickets_conversations_list` with the provided `resume.next_page`
+      (or `next_call`) and the original `per_page`. Skip any conversation whose
+      `id <= resume.anchor.conversation_id` to avoid duplicates.
+    - The server preserves chronological ordering; still, maintain a seen-ID set for
+      extra safety if Freshdesk reorders replies.
     """
     # Validate input parameters
     if page < 1:
@@ -894,15 +919,29 @@ async def tickets_conversations_list(
         current_page = page
         has_more = True
         last_conversation_id: Optional[int] = None
+        pages_fetched = 0
+        page_details: List[Dict[str, Any]] = []
+        last_page_returned: Optional[int] = None
+        last_page_count = 0
+        delivery_truncated = False
+        delivery_reason: Optional[str] = None
+        resume_next_page: Optional[int] = None
+        warnings: List[str] = []
+        prev_page_hint: Optional[int] = None
 
         while has_more and total_tokens < max_tokens:
             params = {"page": current_page, "per_page": per_page}
             response = await _request("GET", f"/tickets/{ticket_id}/conversations", params=params)
             link_header = response.headers.get('Link', '')
             pagination_info = parse_link_header(link_header)
+            prev_page_hint = pagination_info.get("prev")
             conversations = response.json()
 
-            # Process each conversation, respecting the remaining token budget
+            processed_page = current_page
+            pages_fetched += 1
+            current_page_count = 0
+            page_truncated_reason: Optional[str] = None
+
             for conv in conversations:
                 processed_conv = process_conversation_body(
                     conv,
@@ -910,104 +949,172 @@ async def tickets_conversations_list(
                     report_placeholder=report_placeholder
                 )
 
-                # Update filtering stats and tokens saved
-                for field in ['body', 'body_text', 'description']:
+                for field in ["body", "body_text", "description"]:
                     if field in conv and conv[field] and "-----BEGIN REPORT-----" in conv[field]:
                         reports_found_total += 1
                         original_tokens = estimate_tokens(conv[field])
                         filtered_tokens = estimate_tokens(processed_conv.get(field, ""))
                         tokens_saved_total += (original_tokens - filtered_tokens)
 
-                # Optionally extract links from HTML body
-                if extract_links and 'body' in processed_conv and processed_conv['body']:
-                    links = extract_links_from_html(processed_conv['body'])
+                if extract_links and "body" in processed_conv and processed_conv["body"]:
+                    links = extract_links_from_html(processed_conv["body"])
                     if links:
-                        processed_conv['links'] = links
+                        processed_conv["links"] = links
 
-                # Optionally remove HTML body
-                if not include_html_body and 'body' in processed_conv:
-                    processed_conv.pop('body', None)
+                if not include_html_body and "body" in processed_conv:
+                    processed_conv.pop("body", None)
 
                 conv_json = json.dumps(processed_conv)
                 conv_tokens = estimate_tokens(conv_json)
+
                 if total_tokens + conv_tokens > max_tokens:
-                    # Stop within this page; return resume info pointing to this same page
+                    delivery_truncated = True
+                    delivery_reason = "token_budget"
+                    resume_next_page = processed_page
+                    warnings.append(f"Stopped due to token budget. Resume from page {processed_page}.")
+                    page_truncated_reason = "token_budget"
                     has_more = True
-                    next_page = current_page
-                    warnings: List[str] = [f"Stopped due to token budget. Resume from page {next_page}."]
-                    return _ok({
-                        "conversations": all_conversations,
-                        "summary": {
-                            "total_conversations": len(all_conversations),
-                            "total_pages_fetched": max(0, current_page - page),
-                            "total_token_count": total_tokens,
-                            "complete": False,
-                        },
-                        "resume": {
-                            "has_more": has_more,
-                            "exhausted_token_budget": True,
-                            "next_page": next_page,
-                            "last_conversation_id": last_conversation_id,
-                        },
-                        "filtering": {
-                            "encrypted_reports_removed": bool(filter_encrypted_reports),
-                            "total_reports_found": reports_found_total,
-                            "total_tokens_saved": tokens_saved_total,
-                        }
-                    }, pagination={
-                        "has_more": True,
-                        "next_page": next_page,
-                        "prev_page": pagination_info.get("prev"),
-                    }, warnings=warnings, next_call={
-                        "tool": "tickets_conversations_list",
-                        "arguments": {
-                            "ticket_id": ticket_id,
-                            "page": next_page,
-                            "per_page": per_page,
-                        }
-                    })
+                    break
 
                 all_conversations.append(processed_conv)
                 total_tokens += conv_tokens
-                # Track last conversation id if present
+                current_page_count += 1
                 try:
-                    last_conversation_id = int(conv.get("id")) if isinstance(conv.get("id"), (int, str)) else last_conversation_id
+                    last_conversation_id = (
+                        int(conv.get("id"))
+                        if isinstance(conv.get("id"), (int, str))
+                        else last_conversation_id
+                    )
                 except Exception:
                     pass
 
-            # Finished this page without hitting budget
+            last_page_returned = processed_page
+            last_page_count = current_page_count
+
+            if page_truncated_reason is None:
+                if len(conversations) < per_page and pagination_info.get("next") is not None:
+                    page_truncated_reason = "server_short_page"
+                    delivery_truncated = True
+                    if delivery_reason is None:
+                        delivery_reason = "server_short_page"
+
+            page_details.append({
+                "page": processed_page,
+                "delivered_count": current_page_count,
+                "expected_count": per_page,
+                "truncated": page_truncated_reason is not None,
+                "truncated_reason": page_truncated_reason,
+            })
+
+            if page_truncated_reason == "token_budget":
+                # Stop walking additional pages; client must resume from this page.
+                break
+
             next_page_val = pagination_info.get("next")
             has_more = next_page_val is not None
             if has_more:
+                resume_next_page = next_page_val
                 current_page = next_page_val
+            else:
+                resume_next_page = None
 
-        # Completed all pages or budget exactly used at page boundary
+        if has_more and total_tokens >= max_tokens and delivery_reason is None:
+            # Hit the token budget exactly at a page boundary.
+            delivery_truncated = True
+            delivery_reason = "token_budget"
+            resume_next_page = resume_next_page or current_page
+            warnings.append(f"Token budget {max_tokens} reached. Resume from page {resume_next_page}.")
+
+        remaining_token_budget = max(0, max_tokens - total_tokens)
+        summary = {
+            "total_conversations": len(all_conversations),
+            "total_pages_fetched": pages_fetched,
+            "total_token_count": total_tokens,
+            "complete": not has_more,
+            "ordering": "chronological_asc",
+        }
+
+        resume_payload: Dict[str, Any] = {
+            "has_more": has_more,
+            "exhausted_token_budget": delivery_reason == "token_budget",
+            "next_page": resume_next_page if has_more else None,
+            "last_conversation_id": last_conversation_id,
+            "reason": delivery_reason or ("complete" if not has_more else "more_pages"),
+        }
+        if last_conversation_id is not None:
+            resume_payload["anchor"] = {
+                "conversation_id": last_conversation_id,
+                "position": "after",
+            }
+
+        paging_payload = {
+            "start_page": page,
+            "requested_per_page": per_page,
+            "pages_returned": pages_fetched,
+            "last_page": last_page_returned,
+            "last_page_count": last_page_count,
+            "total_conversations_returned": len(all_conversations),
+            "remaining_token_budget": remaining_token_budget,
+            "last_page_truncated": bool(page_details[-1]["truncated"]) if page_details else False,
+            "page_details": page_details,
+        }
+
+        delivery_state = {
+            "truncated": delivery_truncated or has_more,
+            "reason": delivery_reason,
+        }
+
+        guidance = [
+            f"Keep per_page={per_page} constant for ticket {ticket_id} until resume.has_more is false.",
+            "When resume.has_more is true, call tickets_conversations_list with the provided next_page and original per_page.",
+            "Ordering is chronological (oldest to newest); rely on ids if content shifts between fetches.",
+        ]
+        if last_conversation_id is not None:
+            guidance.append(
+                "Skip any conversation whose id is <= resume.anchor.conversation_id to avoid duplicates (maintain a seen-ID set)."
+            )
+        else:
+            guidance.append(
+                "If no anchor is provided, refetch the indicated page and process every conversation returned."
+            )
+        if delivery_reason == "token_budget":
+            guidance.append("Increase max_tokens if you need more conversations per call; otherwise resume paging until complete.")
+
+        pagination_payload = {
+            "has_more": has_more,
+            "next_page": (resume_next_page if has_more else None),
+        }
+        if prev_page_hint is not None:
+            pagination_payload["prev_page"] = prev_page_hint
+        elif page_details:
+            # Derive prev_page from the last processed page when link data was unavailable.
+            pagination_payload["prev_page"] = (
+                (page_details[-1]["page"] - 1) if page_details[-1]["page"] > 1 else None
+            )
+
         return _ok({
             "conversations": all_conversations,
-            "summary": {
-                "total_conversations": len(all_conversations),
-                "total_pages_fetched": max(0, current_page - page),
-                "total_token_count": total_tokens,
-                "complete": not has_more,
-            },
-            "resume": {
-                "has_more": has_more,
-                "exhausted_token_budget": False,
-                "next_page": current_page if has_more else None,
-                "last_conversation_id": last_conversation_id,
-            },
+            "summary": summary,
+            "resume": resume_payload,
             "filtering": {
                 "encrypted_reports_removed": bool(filter_encrypted_reports),
                 "total_reports_found": reports_found_total,
                 "total_tokens_saved": tokens_saved_total,
+            },
+            "paging": paging_payload,
+            "delivery_state": delivery_state,
+            "guidance": guidance,
+        }, pagination=pagination_payload, warnings=(warnings or None), next_call=(
+            {
+                "tool": "tickets_conversations_list",
+                "arguments": {
+                    "ticket_id": ticket_id,
+                    "page": resume_next_page,
+                    "per_page": per_page,
+                },
             }
-        }, pagination={
-            "has_more": has_more,
-            "next_page": current_page if has_more else None,
-            # prev_page is not strictly required for forward paging; can be derived by clients
-        }, next_call=(
-            {"tool": "tickets_conversations_list", "arguments": {"ticket_id": ticket_id, "page": current_page, "per_page": per_page}}
-            if has_more else None
+            if has_more and resume_next_page is not None
+            else None
         ))
     except httpx.HTTPStatusError as e:
         return _err("http_error", "Failed to fetch conversations", details={"status": e.response.status_code, "ticket_id": ticket_id})
