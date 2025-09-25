@@ -8,7 +8,7 @@ An MCP server implementation that integrates with Freshdesk, enabling AI models 
 - **Freshdesk Integration**: Seamless interaction with Freshdesk API endpoints
 - **AI Model Support**: Enables AI models to perform support operations through Freshdesk
 - **Automated Ticket Management**: Handle ticket creation, updates, and responses
-- **Health Endpoint**: `server.info` reports version and readiness
+- **Health Endpoint**: `server_info` reports version and readiness
 - **Consistent Schemas**: Standardized tool responses with `success`, `data`, `pagination`, `warnings`, `error`
 - **Resilience**: Built‑in retries, timeouts, and rate‑limit handling
 
@@ -19,29 +19,29 @@ An MCP server implementation that integrates with Freshdesk, enabling AI models 
 The server offers tools for Freshdesk operations (read/write), and discovery helpers to aid LLM tool selection. All tools return a consistent shape: `{ success, data, pagination?, warnings?, error? }`.
 
 Naming and discovery:
-- Tool names follow a `domain.verb` convention (e.g., `tickets.create`, `contacts.search`).
+- Tool names follow a `domain.verb` convention (e.g., `tickets_create`, `contacts_search`).
 Discovery helpers:
-- `tools.list` — list available tools with summaries and doc paths
-- `tools.search(query, limit?)` — search by name/keywords/summary
-- `tools.explain(name)` — return catalog entry plus full markdown docs
+- `tools_list` — list available tools with summaries and doc paths
+- `tools_search(query, limit?)` — search by name/keywords/summary
+- `tools_explain(name)` — return catalog entry plus full markdown docs
 
 Documentation:
-- Short, LLM-focused docs live under `docs/` (e.g., docs/tickets.create.md)
+- Short, LLM-focused docs live under `docs/` (e.g., docs/tickets_create.md)
 - Snapshot of Freshworks REST docs: `docs/source/freshworks_support_ticket_rest_apis.html`
 
 The server’s main tools include (see `docs/` for details):
 
-- Tickets: `tickets.create`, `tickets.update`, `tickets.delete`, `tickets.get`, `tickets.list`, `tickets.search`
-- Ticket conversations: `tickets.conversations.list` (multi-page with token budget and resume metadata), `tickets.reply.create`, `tickets.note.create`, `tickets.conversation.update`
-- Ticket summaries: `tickets.summary.get`, `tickets.summary.update`, `tickets.summary.delete`
-- Ticket fields: `fields.tickets.list`, `fields.tickets.create`, `fields.tickets.get`, `fields.tickets.update`, `fields.tickets.get_property`
-- Contacts: `contacts.list`, `contacts.get`, `contacts.search`, `contacts.update`
-- Contact fields: `fields.contacts.list`, `fields.contacts.get`, `fields.contacts.create`, `fields.contacts.update`
-- Companies: `companies.list`, `companies.get`, `companies.search`, `companies.find_by_name`, `fields.companies.list`
-- Agents: `agents.list`, `agents.get`, `agents.search`, `agents.create`, `agents.update`
-- Groups: `groups.list`, `groups.get`, `groups.create`, `groups.update`
-- Canned responses: `canned.folders.list`, `canned.folders.create`, `canned.folders.update`, `canned.list`, `canned.get`, `canned.create`, `canned.update`
-- Solutions: `solutions.categories.list`, `solutions.categories.get`, `solutions.categories.create`, `solutions.categories.update`, `solutions.folders.list`, `solutions.folders.get`, `solutions.folders.create`, `solutions.folders.update`, `solutions.articles.list`, `solutions.articles.get`, `solutions.articles.create`, `solutions.articles.update`
+- Tickets: `tickets_create`, `tickets_update`, `tickets_delete`, `tickets_get`, `tickets_list`, `tickets_search`
+- Ticket conversations: `tickets_conversations_list` (multi-page with token budget and resume metadata), `tickets_reply_create`, `tickets_note_create`, `tickets_conversation_update`
+- Ticket summaries: `tickets_summary_get`, `tickets_summary_update`, `tickets_summary_delete`
+- Ticket fields: `fields_tickets_list`, `fields_tickets_create`, `fields_tickets_get`, `fields_tickets_update`, `fields_tickets_get_property`
+- Contacts: `contacts_list`, `contacts_get`, `contacts_search`, `contacts_update`
+- Contact fields: `fields_contacts_list`, `fields_contacts_get`, `fields_contacts_create`, `fields_contacts_update`
+- Companies: `companies_list`, `companies_get`, `companies_search`, `companies_find_by_name`, `fields_companies_list`
+- Agents: `agents_list`, `agents_get`, `agents_search`, `agents_create`, `agents_update`
+- Groups: `groups_list`, `groups_get`, `groups_create`, `groups_update`
+- Canned responses: `canned_folders_list`, `canned_folders_create`, `canned_folders_update`, `canned_list`, `canned_get`, `canned_create`, `canned_update`
+- Solutions: `solutions_categories_list`, `solutions_categories_get`, `solutions_categories_create`, `solutions_categories_update`, `solutions_folders_list`, `solutions_folders_get`, `solutions_folders_create`, `solutions_folders_update`, `solutions_articles_list`, `solutions_articles_get`, `solutions_articles_create`, `solutions_articles_update`
 
 ## Getting Started
 
@@ -113,7 +113,7 @@ uvx freshdesk-mcp --env FRESHDESK_API_KEY=<your_api_key> --env FRESHDESK_DOMAIN=
 - Ensure proper network connectivity to Freshdesk servers
 - Check API rate limits and quotas
 - Verify the `uvx` command is available in your PATH
-- Use `tools.search("<goal>")` or `tools.list` to locate the right tool
+- Use `tools_search("<goal>")` or `tools_list` to locate the right tool
 
 ## License
 

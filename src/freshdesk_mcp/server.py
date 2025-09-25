@@ -140,85 +140,85 @@ def _err(err_type: str, message: str, *, details: Optional[Dict[str, Any]] = Non
 # --- Tool catalog for LLM selection ---
 _TOOL_CATALOG: List[Dict[str, Any]] = [
     # Discovery
-    {"name": "tools.list", "summary": "List available tools with summaries and docs.", "use_when": "You need an overview of tools.", "returns": "success, data: { tools }", "safety": "read", "keywords": ["discover", "catalog", "list"], "docs": "docs/tools.discovery.md"},
-    {"name": "tools.search", "summary": "Search tools by name/keywords/summary.", "use_when": "Find the right tool by goal.", "returns": "success, data: { results }", "safety": "read", "keywords": ["discover", "search"], "docs": "docs/tools.discovery.md"},
-    {"name": "tools.explain", "summary": "Return detailed documentation for a tool.", "use_when": "Need full usage details.", "returns": "success, data: { tool, doc }", "safety": "read", "keywords": ["docs", "explain"], "docs": "docs/tools.discovery.md"},
-    {"name": "server.info", "summary": "Report MCP server version, readiness, and capabilities.", "use_when": "Health check or environment info.", "returns": "success, data: { name, version, freshdesk_domain, ready, capabilities }", "safety": "read", "keywords": ["health", "version"], "docs": "docs/tools.discovery.md"},
+    {"name": "tools_list", "summary": "List available tools with summaries and docs.", "use_when": "You need an overview of tools.", "returns": "success, data: { tools }", "safety": "read", "keywords": ["discover", "catalog", "list"], "docs": "docs/tools_discovery.md"},
+    {"name": "tools_search", "summary": "Search tools by name/keywords/summary.", "use_when": "Find the right tool by goal.", "returns": "success, data: { results }", "safety": "read", "keywords": ["discover", "search"], "docs": "docs/tools_discovery.md"},
+    {"name": "tools_explain", "summary": "Return detailed documentation for a tool.", "use_when": "Need full usage details.", "returns": "success, data: { tool, doc }", "safety": "read", "keywords": ["docs", "explain"], "docs": "docs/tools_discovery.md"},
+    {"name": "server_info", "summary": "Report MCP server version, readiness, and capabilities.", "use_when": "Health check or environment info.", "returns": "success, data: { name, version, freshdesk_domain, ready, capabilities }", "safety": "read", "keywords": ["health", "version"], "docs": "docs/tools_discovery.md"},
 
     # Tickets
-    {"name": "tickets.create", "summary": "Create a ticket using subject, description, enums, and optional custom fields.", "use_when": "Starting a new support case.", "returns": "success, data: { ticket }", "safety": "write", "keywords": ["ticket", "create", "new"], "docs": "docs/tickets.create.md"},
-    {"name": "tickets.update", "summary": "Update fields on an existing ticket (status, priority, assignee, custom_fields).", "use_when": "Modify existing tickets.", "returns": "success, data: { message, ticket }", "safety": "write", "keywords": ["ticket", "update", "status"], "docs": "docs/tickets.update.md"},
-    {"name": "tickets.delete", "summary": "Delete a ticket by id.", "use_when": "Remove a mistaken or test ticket.", "returns": "success, data: { message }", "safety": "write", "keywords": ["ticket", "delete"], "docs": "docs/tickets.delete.md"},
-    {"name": "tickets.get", "summary": "Fetch a single ticket by id.", "use_when": "Get ticket details.", "returns": "success, data: ticket", "safety": "read", "keywords": ["ticket", "view", "get"], "docs": "docs/tickets.get.md"},
-    {"name": "tickets.list", "summary": "List tickets with pagination.", "use_when": "Browse tickets.", "returns": "success, data: { tickets, pagination }, next_call?", "safety": "read", "keywords": ["ticket", "list", "paginate"], "docs": "docs/tickets.list.md"},
-    {"name": "tickets.search", "summary": "Search tickets using Freshdesk query syntax; optional HTML stripping.", "use_when": "Find tickets by criteria.", "returns": "success, data: { results }", "safety": "read", "keywords": ["ticket", "search", "query"], "docs": "docs/tickets.search.md"},
-    {"name": "tickets.conversations.list", "summary": "List conversations across pages under a global token budget.", "use_when": "Read ticket history; receives summary, resume info, and pagination.", "returns": "success, data: { conversations, summary, resume }, pagination: { next_page, prev_page?, has_more }, next_call?", "safety": "read", "keywords": ["conversation", "replies", "paginate"], "docs": "docs/tickets.conversations.md"},
-    {"name": "tickets.reply.create", "summary": "Add a public reply to a ticket.", "use_when": "Respond to requester.", "returns": "success, data: reply", "safety": "write", "keywords": ["reply", "message"], "docs": "docs/tickets.reply.md"},
-    {"name": "tickets.note.create", "summary": "Add a private note to a ticket.", "use_when": "Internal note.", "returns": "success, data: note", "safety": "write", "keywords": ["note", "internal"], "docs": "docs/tickets.note.md"},
-    {"name": "tickets.conversation.update", "summary": "Update a conversation body by conversation id.", "use_when": "Fix or amend a prior message.", "returns": "success, data: conversation", "safety": "write", "keywords": ["conversation", "update"], "docs": "docs/tickets.conversation.update.md"},
-    {"name": "tickets.summary.get", "summary": "Get the summary of a ticket.", "use_when": "Read ticket summary.", "returns": "success, data: summary", "safety": "read", "keywords": ["summary"], "docs": "docs/tickets.summary.md"},
-    {"name": "tickets.summary.update", "summary": "Update the summary of a ticket.", "use_when": "Modify ticket summary.", "returns": "success, data: summary", "safety": "write", "keywords": ["summary", "update"], "docs": "docs/tickets.summary.md"},
-    {"name": "tickets.summary.delete", "summary": "Delete the summary of a ticket.", "use_when": "Remove ticket summary.", "returns": "success, data: { message }", "safety": "write", "keywords": ["summary", "delete"], "docs": "docs/tickets.summary.md"},
+    {"name": "tickets_create", "summary": "Create a ticket using subject, description, enums, and optional custom fields.", "use_when": "Starting a new support case.", "returns": "success, data: { ticket }", "safety": "write", "keywords": ["ticket", "create", "new"], "docs": "docs/tickets_create.md"},
+    {"name": "tickets_update", "summary": "Update fields on an existing ticket (status, priority, assignee, custom_fields).", "use_when": "Modify existing tickets.", "returns": "success, data: { message, ticket }", "safety": "write", "keywords": ["ticket", "update", "status"], "docs": "docs/tickets_update.md"},
+    {"name": "tickets_delete", "summary": "Delete a ticket by id.", "use_when": "Remove a mistaken or test ticket.", "returns": "success, data: { message }", "safety": "write", "keywords": ["ticket", "delete"], "docs": "docs/tickets_delete.md"},
+    {"name": "tickets_get", "summary": "Fetch a single ticket by id.", "use_when": "Get ticket details.", "returns": "success, data: ticket", "safety": "read", "keywords": ["ticket", "view", "get"], "docs": "docs/tickets_get.md"},
+    {"name": "tickets_list", "summary": "List tickets with pagination.", "use_when": "Browse tickets.", "returns": "success, data: { tickets, pagination }, next_call?", "safety": "read", "keywords": ["ticket", "list", "paginate"], "docs": "docs/tickets_list.md"},
+    {"name": "tickets_search", "summary": "Search tickets using Freshdesk query syntax; optional HTML stripping.", "use_when": "Find tickets by criteria.", "returns": "success, data: { results }", "safety": "read", "keywords": ["ticket", "search", "query"], "docs": "docs/tickets_search.md"},
+    {"name": "tickets_conversations_list", "summary": "List conversations across pages under a global token budget.", "use_when": "Read ticket history; receives summary, resume info, and pagination.", "returns": "success, data: { conversations, summary, resume }, pagination: { next_page, prev_page?, has_more }, next_call?", "safety": "read", "keywords": ["conversation", "replies", "paginate"], "docs": "docs/tickets_conversations.md"},
+    {"name": "tickets_reply_create", "summary": "Add a public reply to a ticket.", "use_when": "Respond to requester.", "returns": "success, data: reply", "safety": "write", "keywords": ["reply", "message"], "docs": "docs/tickets_reply.md"},
+    {"name": "tickets_note_create", "summary": "Add a private note to a ticket.", "use_when": "Internal note.", "returns": "success, data: note", "safety": "write", "keywords": ["note", "internal"], "docs": "docs/tickets_note.md"},
+    {"name": "tickets_conversation_update", "summary": "Update a conversation body by conversation id.", "use_when": "Fix or amend a prior message.", "returns": "success, data: conversation", "safety": "write", "keywords": ["conversation", "update"], "docs": "docs/tickets_conversation_update.md"},
+    {"name": "tickets_summary_get", "summary": "Get the summary of a ticket.", "use_when": "Read ticket summary.", "returns": "success, data: summary", "safety": "read", "keywords": ["summary"], "docs": "docs/tickets_summary.md"},
+    {"name": "tickets_summary_update", "summary": "Update the summary of a ticket.", "use_when": "Modify ticket summary.", "returns": "success, data: summary", "safety": "write", "keywords": ["summary", "update"], "docs": "docs/tickets_summary.md"},
+    {"name": "tickets_summary_delete", "summary": "Delete the summary of a ticket.", "use_when": "Remove ticket summary.", "returns": "success, data: { message }", "safety": "write", "keywords": ["summary", "delete"], "docs": "docs/tickets_summary.md"},
 
     # Fields
-    {"name": "fields.tickets.list", "summary": "List all ticket fields and properties.", "use_when": "Build payloads with correct field keys.", "returns": "success, data: [fields]", "safety": "read", "keywords": ["fields", "ticket"], "docs": "docs/fields.tickets.md"},
-    {"name": "fields.tickets.create", "summary": "Create a ticket field.", "use_when": "Administer ticket fields.", "returns": "success, data: field", "safety": "write", "keywords": ["fields", "ticket", "create"], "docs": "docs/fields.tickets.md"},
-    {"name": "fields.tickets.get", "summary": "View a ticket field by id.", "use_when": "Inspect ticket field.", "returns": "success, data: field", "safety": "read", "keywords": ["fields", "ticket", "get"], "docs": "docs/fields.tickets.md"},
-    {"name": "fields.tickets.update", "summary": "Update a ticket field by id.", "use_when": "Modify ticket field.", "returns": "success, data: field", "safety": "write", "keywords": ["fields", "ticket", "update"], "docs": "docs/fields.tickets.md"},
-    {"name": "fields.tickets.get_property", "summary": "Get properties of a specific ticket field by name.", "use_when": "Find internal keys or constraints.", "returns": "success, data: field|None", "safety": "read", "keywords": ["fields", "ticket", "property"], "docs": "docs/fields.tickets.md"},
-    {"name": "fields.contacts.list", "summary": "List contact fields.", "use_when": "Build contact payloads.", "returns": "success, data: [fields]", "safety": "read", "keywords": ["fields", "contacts"], "docs": "docs/contacts.fields.md"},
-    {"name": "fields.contacts.get", "summary": "View a contact field.", "use_when": "Inspect contact field.", "returns": "success, data: field", "safety": "read", "keywords": ["fields", "contacts", "get"], "docs": "docs/contacts.fields.md"},
-    {"name": "fields.contacts.create", "summary": "Create a contact field.", "use_when": "Administer contact fields.", "returns": "success, data: field", "safety": "write", "keywords": ["fields", "contacts", "create"], "docs": "docs/contacts.fields.md"},
-    {"name": "fields.contacts.update", "summary": "Update a contact field.", "use_when": "Modify contact field.", "returns": "success, data: field", "safety": "write", "keywords": ["fields", "contacts", "update"], "docs": "docs/contacts.fields.md"},
-    {"name": "fields.companies.list", "summary": "List company fields.", "use_when": "Build company payloads.", "returns": "success, data: [fields]", "safety": "read", "keywords": ["fields", "companies"], "docs": "docs/companies.fields.md"},
+    {"name": "fields_tickets_list", "summary": "List all ticket fields and properties.", "use_when": "Build payloads with correct field keys.", "returns": "success, data: [fields]", "safety": "read", "keywords": ["fields", "ticket"], "docs": "docs/fields_tickets.md"},
+    {"name": "fields_tickets_create", "summary": "Create a ticket field.", "use_when": "Administer ticket fields.", "returns": "success, data: field", "safety": "write", "keywords": ["fields", "ticket", "create"], "docs": "docs/fields_tickets.md"},
+    {"name": "fields_tickets_get", "summary": "View a ticket field by id.", "use_when": "Inspect ticket field.", "returns": "success, data: field", "safety": "read", "keywords": ["fields", "ticket", "get"], "docs": "docs/fields_tickets.md"},
+    {"name": "fields_tickets_update", "summary": "Update a ticket field by id.", "use_when": "Modify ticket field.", "returns": "success, data: field", "safety": "write", "keywords": ["fields", "ticket", "update"], "docs": "docs/fields_tickets.md"},
+    {"name": "fields_tickets_get_property", "summary": "Get properties of a specific ticket field by name.", "use_when": "Find internal keys or constraints.", "returns": "success, data: field|None", "safety": "read", "keywords": ["fields", "ticket", "property"], "docs": "docs/fields_tickets.md"},
+    {"name": "fields_contacts_list", "summary": "List contact fields.", "use_when": "Build contact payloads.", "returns": "success, data: [fields]", "safety": "read", "keywords": ["fields", "contacts"], "docs": "docs/contacts_fields.md"},
+    {"name": "fields_contacts_get", "summary": "View a contact field.", "use_when": "Inspect contact field.", "returns": "success, data: field", "safety": "read", "keywords": ["fields", "contacts", "get"], "docs": "docs/contacts_fields.md"},
+    {"name": "fields_contacts_create", "summary": "Create a contact field.", "use_when": "Administer contact fields.", "returns": "success, data: field", "safety": "write", "keywords": ["fields", "contacts", "create"], "docs": "docs/contacts_fields.md"},
+    {"name": "fields_contacts_update", "summary": "Update a contact field.", "use_when": "Modify contact field.", "returns": "success, data: field", "safety": "write", "keywords": ["fields", "contacts", "update"], "docs": "docs/contacts_fields.md"},
+    {"name": "fields_companies_list", "summary": "List company fields.", "use_when": "Build company payloads.", "returns": "success, data: [fields]", "safety": "read", "keywords": ["fields", "companies"], "docs": "docs/companies_fields.md"},
 
     # Contacts
-    {"name": "contacts.list", "summary": "List contacts with pagination.", "use_when": "Browse contacts.", "returns": "success, data: { contacts, pagination }, next_call?", "safety": "read", "keywords": ["contacts", "list"], "docs": "docs/contacts.list.md"},
-    {"name": "contacts.get", "summary": "Get a contact by id.", "use_when": "Read contact details.", "returns": "success, data: contact", "safety": "read", "keywords": ["contacts", "get"], "docs": "docs/contacts.get.md"},
-    {"name": "contacts.search", "summary": "Autocomplete contacts by term.", "use_when": "Find a contact by name/email.", "returns": "success, data: [...]", "safety": "read", "keywords": ["contacts", "search"], "docs": "docs/contacts.search.md"},
-    {"name": "contacts.update", "summary": "Update a contact by id.", "use_when": "Modify a contact.", "returns": "success, data: contact", "safety": "write", "keywords": ["contacts", "update"], "docs": "docs/contacts.update.md"},
+    {"name": "contacts_list", "summary": "List contacts with pagination.", "use_when": "Browse contacts.", "returns": "success, data: { contacts, pagination }, next_call?", "safety": "read", "keywords": ["contacts", "list"], "docs": "docs/contacts_list.md"},
+    {"name": "contacts_get", "summary": "Get a contact by id.", "use_when": "Read contact details.", "returns": "success, data: contact", "safety": "read", "keywords": ["contacts", "get"], "docs": "docs/contacts_get.md"},
+    {"name": "contacts_search", "summary": "Autocomplete contacts by term.", "use_when": "Find a contact by name/email.", "returns": "success, data: [...]", "safety": "read", "keywords": ["contacts", "search"], "docs": "docs/contacts_search.md"},
+    {"name": "contacts_update", "summary": "Update a contact by id.", "use_when": "Modify a contact.", "returns": "success, data: contact", "safety": "write", "keywords": ["contacts", "update"], "docs": "docs/contacts_update.md"},
 
     # Companies
-    {"name": "companies.list", "summary": "List companies with pagination.", "use_when": "Browse companies.", "returns": "success, data: { companies, pagination }, next_call?", "safety": "read", "keywords": ["companies", "list"], "docs": "docs/companies.list.md"},
-    {"name": "companies.get", "summary": "Get a company by id.", "use_when": "Read company details.", "returns": "success, data: company", "safety": "read", "keywords": ["companies", "get"], "docs": "docs/companies.get.md"},
-    {"name": "companies.search", "summary": "Autocomplete companies by name.", "use_when": "Find a company.", "returns": "success, data: [...]", "safety": "read", "keywords": ["companies", "search"], "docs": "docs/companies.search.md"},
-    {"name": "companies.find_by_name", "summary": "Find a company by name.", "use_when": "Find a specific company.", "returns": "success, data: [...]", "safety": "read", "keywords": ["companies", "find"], "docs": "docs/companies.search.md"},
+    {"name": "companies_list", "summary": "List companies with pagination.", "use_when": "Browse companies.", "returns": "success, data: { companies, pagination }, next_call?", "safety": "read", "keywords": ["companies", "list"], "docs": "docs/companies_list.md"},
+    {"name": "companies_get", "summary": "Get a company by id.", "use_when": "Read company details.", "returns": "success, data: company", "safety": "read", "keywords": ["companies", "get"], "docs": "docs/companies_get.md"},
+    {"name": "companies_search", "summary": "Autocomplete companies by name.", "use_when": "Find a company.", "returns": "success, data: [...]", "safety": "read", "keywords": ["companies", "search"], "docs": "docs/companies_search.md"},
+    {"name": "companies_find_by_name", "summary": "Find a company by name.", "use_when": "Find a specific company.", "returns": "success, data: [...]", "safety": "read", "keywords": ["companies", "find"], "docs": "docs/companies_search.md"},
 
     # Agents
-    {"name": "agents.list", "summary": "List agents with pagination.", "use_when": "Browse agents.", "returns": "success, data: { agents, pagination }, next_call?", "safety": "read", "keywords": ["agents", "list"], "docs": "docs/agents.list.md"},
-    {"name": "agents.get", "summary": "Get an agent by id.", "use_when": "Read agent details.", "returns": "success, data: agent", "safety": "read", "keywords": ["agents", "get"], "docs": "docs/agents.get.md"},
-    {"name": "agents.search", "summary": "Autocomplete agents by term.", "use_when": "Find an agent.", "returns": "success, data: [...]", "safety": "read", "keywords": ["agents", "search"], "docs": "docs/agents.search.md"},
-    {"name": "agents.create", "summary": "Create a new agent.", "use_when": "Provision an agent.", "returns": "success, data: agent", "safety": "write", "keywords": ["agents", "create"], "docs": "docs/agents.create.md"},
-    {"name": "agents.update", "summary": "Update an agent by id.", "use_when": "Modify agent.", "returns": "success, data: agent", "safety": "write", "keywords": ["agents", "update"], "docs": "docs/agents.update.md"},
+    {"name": "agents_list", "summary": "List agents with pagination.", "use_when": "Browse agents.", "returns": "success, data: { agents, pagination }, next_call?", "safety": "read", "keywords": ["agents", "list"], "docs": "docs/agents_list.md"},
+    {"name": "agents_get", "summary": "Get an agent by id.", "use_when": "Read agent details.", "returns": "success, data: agent", "safety": "read", "keywords": ["agents", "get"], "docs": "docs/agents_get.md"},
+    {"name": "agents_search", "summary": "Autocomplete agents by term.", "use_when": "Find an agent.", "returns": "success, data: [...]", "safety": "read", "keywords": ["agents", "search"], "docs": "docs/agents_search.md"},
+    {"name": "agents_create", "summary": "Create a new agent.", "use_when": "Provision an agent.", "returns": "success, data: agent", "safety": "write", "keywords": ["agents", "create"], "docs": "docs/agents_create.md"},
+    {"name": "agents_update", "summary": "Update an agent by id.", "use_when": "Modify agent.", "returns": "success, data: agent", "safety": "write", "keywords": ["agents", "update"], "docs": "docs/agents_update.md"},
 
     # Groups
-    {"name": "groups.list", "summary": "List groups with pagination.", "use_when": "Browse groups.", "returns": "success, data: { groups, pagination }, next_call?", "safety": "read", "keywords": ["groups", "list"], "docs": "docs/groups.list.md"},
-    {"name": "groups.get", "summary": "Get a group by id.", "use_when": "Read group details.", "returns": "success, data: group", "safety": "read", "keywords": ["groups", "get"], "docs": "docs/groups.get.md"},
-    {"name": "groups.create", "summary": "Create a group.", "use_when": "Provision a group.", "returns": "success, data: group", "safety": "write", "keywords": ["groups", "create"], "docs": "docs/groups.create.md"},
-    {"name": "groups.update", "summary": "Update a group.", "use_when": "Modify group.", "returns": "success, data: group", "safety": "write", "keywords": ["groups", "update"], "docs": "docs/groups.update.md"},
+    {"name": "groups_list", "summary": "List groups with pagination.", "use_when": "Browse groups.", "returns": "success, data: { groups, pagination }, next_call?", "safety": "read", "keywords": ["groups", "list"], "docs": "docs/groups_list.md"},
+    {"name": "groups_get", "summary": "Get a group by id.", "use_when": "Read group details.", "returns": "success, data: group", "safety": "read", "keywords": ["groups", "get"], "docs": "docs/groups_get.md"},
+    {"name": "groups_create", "summary": "Create a group.", "use_when": "Provision a group.", "returns": "success, data: group", "safety": "write", "keywords": ["groups", "create"], "docs": "docs/groups_create.md"},
+    {"name": "groups_update", "summary": "Update a group.", "use_when": "Modify group.", "returns": "success, data: group", "safety": "write", "keywords": ["groups", "update"], "docs": "docs/groups_update.md"},
 
     # Canned responses
-    {"name": "canned.folders.list", "summary": "List canned response folders.", "use_when": "Browse folders.", "returns": "success, data: { folders }", "safety": "read", "keywords": ["canned", "folders", "list"], "docs": "docs/canned.folders.list.md"},
-    {"name": "canned.folders.create", "summary": "Create a canned response folder.", "use_when": "Create folder.", "returns": "success, data: folder", "safety": "write", "keywords": ["canned", "folders", "create"], "docs": "docs/canned.folders.create.md"},
-    {"name": "canned.folders.update", "summary": "Update a canned response folder.", "use_when": "Rename/update folder.", "returns": "success, data: folder", "safety": "write", "keywords": ["canned", "folders", "update"], "docs": "docs/canned.folders.update.md"},
-    {"name": "canned.list", "summary": "List canned responses in a folder.", "use_when": "Browse canned responses.", "returns": "success, data: { canned_responses }", "safety": "read", "keywords": ["canned", "list"], "docs": "docs/canned.list.md"},
-    {"name": "canned.get", "summary": "Get a canned response by id.", "use_when": "Read canned response.", "returns": "success, data: canned_response", "safety": "read", "keywords": ["canned", "get"], "docs": "docs/canned.get.md"},
-    {"name": "canned.create", "summary": "Create a canned response.", "use_when": "Add canned response.", "returns": "success, data: canned_response", "safety": "write", "keywords": ["canned", "create"], "docs": "docs/canned.create.md"},
-    {"name": "canned.update", "summary": "Update a canned response.", "use_when": "Modify canned response.", "returns": "success, data: canned_response", "safety": "write", "keywords": ["canned", "update"], "docs": "docs/canned.update.md"},
+    {"name": "canned_folders_list", "summary": "List canned response folders.", "use_when": "Browse folders.", "returns": "success, data: { folders }", "safety": "read", "keywords": ["canned", "folders", "list"], "docs": "docs/canned_folders_list.md"},
+    {"name": "canned_folders_create", "summary": "Create a canned response folder.", "use_when": "Create folder.", "returns": "success, data: folder", "safety": "write", "keywords": ["canned", "folders", "create"], "docs": "docs/canned_folders_create.md"},
+    {"name": "canned_folders_update", "summary": "Update a canned response folder.", "use_when": "Rename/update folder.", "returns": "success, data: folder", "safety": "write", "keywords": ["canned", "folders", "update"], "docs": "docs/canned_folders_update.md"},
+    {"name": "canned_list", "summary": "List canned responses in a folder.", "use_when": "Browse canned responses.", "returns": "success, data: { canned_responses }", "safety": "read", "keywords": ["canned", "list"], "docs": "docs/canned_list.md"},
+    {"name": "canned_get", "summary": "Get a canned response by id.", "use_when": "Read canned response.", "returns": "success, data: canned_response", "safety": "read", "keywords": ["canned", "get"], "docs": "docs/canned_get.md"},
+    {"name": "canned_create", "summary": "Create a canned response.", "use_when": "Add canned response.", "returns": "success, data: canned_response", "safety": "write", "keywords": ["canned", "create"], "docs": "docs/canned_create.md"},
+    {"name": "canned_update", "summary": "Update a canned response.", "use_when": "Modify canned response.", "returns": "success, data: canned_response", "safety": "write", "keywords": ["canned", "update"], "docs": "docs/canned_update.md"},
 
     # Solutions (KB)
-    {"name": "solutions.categories.list", "summary": "List solution categories.", "use_when": "Browse categories.", "returns": "success, data: { categories }", "safety": "read", "keywords": ["solutions", "categories", "list"], "docs": "docs/solutions.categories.list.md"},
-    {"name": "solutions.categories.get", "summary": "Get a solution category by id.", "use_when": "Read category.", "returns": "success, data: category", "safety": "read", "keywords": ["solutions", "categories", "get"], "docs": "docs/solutions.categories.get.md"},
-    {"name": "solutions.categories.create", "summary": "Create a solution category.", "use_when": "Add category.", "returns": "success, data: category", "safety": "write", "keywords": ["solutions", "categories", "create"], "docs": "docs/solutions.categories.create.md"},
-    {"name": "solutions.categories.update", "summary": "Update a solution category.", "use_when": "Modify category.", "returns": "success, data: category", "safety": "write", "keywords": ["solutions", "categories", "update"], "docs": "docs/solutions.categories.update.md"},
-    {"name": "solutions.folders.list", "summary": "List solution folders in a category.", "use_when": "Browse folders.", "returns": "success, data: { folders }", "safety": "read", "keywords": ["solutions", "folders", "list"], "docs": "docs/solutions.folders.list.md"},
-    {"name": "solutions.folders.get", "summary": "Get a solution folder by id.", "use_when": "Read folder.", "returns": "success, data: folder", "safety": "read", "keywords": ["solutions", "folders", "get"], "docs": "docs/solutions.folders.get.md"},
-    {"name": "solutions.folders.create", "summary": "Create a solution folder in a category.", "use_when": "Add folder.", "returns": "success, data: folder", "safety": "write", "keywords": ["solutions", "folders", "create"], "docs": "docs/solutions.folders.create.md"},
-    {"name": "solutions.folders.update", "summary": "Update a solution folder by id.", "use_when": "Modify folder.", "returns": "success, data: folder", "safety": "write", "keywords": ["solutions", "folders", "update"], "docs": "docs/solutions.folders.update.md"},
-    {"name": "solutions.articles.list", "summary": "List solution articles in a folder.", "use_when": "Browse articles.", "returns": "success, data: { articles }", "safety": "read", "keywords": ["solutions", "articles", "list"], "docs": "docs/solutions.articles.list.md"},
-    {"name": "solutions.articles.get", "summary": "Get a solution article by id.", "use_when": "Read article.", "returns": "success, data: article", "safety": "read", "keywords": ["solutions", "articles", "get"], "docs": "docs/solutions.articles.get.md"},
-    {"name": "solutions.articles.create", "summary": "Create a solution article in a folder.", "use_when": "Add article.", "returns": "success, data: article", "safety": "write", "keywords": ["solutions", "articles", "create"], "docs": "docs/solutions.articles.create.md"},
-    {"name": "solutions.articles.update", "summary": "Update a solution article by id.", "use_when": "Modify article.", "returns": "success, data: article", "safety": "write", "keywords": ["solutions", "articles", "update"], "docs": "docs/solutions.articles.update.md"},
+    {"name": "solutions_categories_list", "summary": "List solution categories.", "use_when": "Browse categories.", "returns": "success, data: { categories }", "safety": "read", "keywords": ["solutions", "categories", "list"], "docs": "docs/solutions_categories_list.md"},
+    {"name": "solutions_categories_get", "summary": "Get a solution category by id.", "use_when": "Read category.", "returns": "success, data: category", "safety": "read", "keywords": ["solutions", "categories", "get"], "docs": "docs/solutions_categories_get.md"},
+    {"name": "solutions_categories_create", "summary": "Create a solution category.", "use_when": "Add category.", "returns": "success, data: category", "safety": "write", "keywords": ["solutions", "categories", "create"], "docs": "docs/solutions_categories_create.md"},
+    {"name": "solutions_categories_update", "summary": "Update a solution category.", "use_when": "Modify category.", "returns": "success, data: category", "safety": "write", "keywords": ["solutions", "categories", "update"], "docs": "docs/solutions_categories_update.md"},
+    {"name": "solutions_folders_list", "summary": "List solution folders in a category.", "use_when": "Browse folders.", "returns": "success, data: { folders }", "safety": "read", "keywords": ["solutions", "folders", "list"], "docs": "docs/solutions_folders_list.md"},
+    {"name": "solutions_folders_get", "summary": "Get a solution folder by id.", "use_when": "Read folder.", "returns": "success, data: folder", "safety": "read", "keywords": ["solutions", "folders", "get"], "docs": "docs/solutions_folders_get.md"},
+    {"name": "solutions_folders_create", "summary": "Create a solution folder in a category.", "use_when": "Add folder.", "returns": "success, data: folder", "safety": "write", "keywords": ["solutions", "folders", "create"], "docs": "docs/solutions_folders_create.md"},
+    {"name": "solutions_folders_update", "summary": "Update a solution folder by id.", "use_when": "Modify folder.", "returns": "success, data: folder", "safety": "write", "keywords": ["solutions", "folders", "update"], "docs": "docs/solutions_folders_update.md"},
+    {"name": "solutions_articles_list", "summary": "List solution articles in a folder.", "use_when": "Browse articles.", "returns": "success, data: { articles }", "safety": "read", "keywords": ["solutions", "articles", "list"], "docs": "docs/solutions_articles_list.md"},
+    {"name": "solutions_articles_get", "summary": "Get a solution article by id.", "use_when": "Read article.", "returns": "success, data: article", "safety": "read", "keywords": ["solutions", "articles", "get"], "docs": "docs/solutions_articles_get.md"},
+    {"name": "solutions_articles_create", "summary": "Create a solution article in a folder.", "use_when": "Add article.", "returns": "success, data: article", "safety": "write", "keywords": ["solutions", "articles", "create"], "docs": "docs/solutions_articles_create.md"},
+    {"name": "solutions_articles_update", "summary": "Update a solution article by id.", "use_when": "Modify article.", "returns": "success, data: article", "safety": "write", "keywords": ["solutions", "articles", "update"], "docs": "docs/solutions_articles_update.md"},
 ]
 
 def _catalog_search(query: str) -> List[Dict[str, Any]]:
@@ -243,18 +243,18 @@ def _catalog_search(query: str) -> List[Dict[str, Any]]:
     scored.sort(key=lambda x: x[0], reverse=True)
     return [i for _, i in scored]
 
-@mcp.tool("tools.list")
+@mcp.tool("tools_list")
 async def tools_list() -> Dict[str, Any]:
     """List available tools with concise summaries for LLM selection."""
     return _ok({"tools": _TOOL_CATALOG})
 
-@mcp.tool("tools.search")
+@mcp.tool("tools_search")
 async def tools_search(query: str, limit: Annotated[int, Field(ge=1, le=20, description="Max results")] = 5) -> Dict[str, Any]:
     """Search tools by name/keywords/summary and return top matches."""
     hits = _catalog_search(query)[:limit]
     return _ok({"query": query, "results": hits})
 
-@mcp.tool("tools.explain")
+@mcp.tool("tools_explain")
 async def tools_explain(name: str) -> Dict[str, Any]:
     """Return detailed documentation for a tool, including params and references."""
     match = next((t for t in _TOOL_CATALOG if t["name"] == name), None)
@@ -609,7 +609,7 @@ class CannedResponseCreate(BaseModel):
         description="Groups for which the canned response is visible. Required if visibility=2"
     )
 
-@mcp.tool("fields.tickets.list")
+@mcp.tool("fields_tickets_list")
 async def fields_tickets_list() -> Dict[str, Any]:
     """Get ticket fields from Freshdesk."""
     try:
@@ -620,7 +620,7 @@ async def fields_tickets_list() -> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("server.info")
+@mcp.tool("server_info")
 async def get_server_info() -> Dict[str, Any]:
     """
     Health/version endpoint for clients and operators.
@@ -641,7 +641,7 @@ async def get_server_info() -> Dict[str, Any]:
     })
 
 
-@mcp.tool("tickets.list")
+@mcp.tool("tickets_list")
 async def tickets_list(
     page: Annotated[int, Field(ge=1, description="Page number")] = 1,
     per_page: Annotated[int, Field(ge=1, le=100, description="Items per page")] = 30,
@@ -660,7 +660,7 @@ async def tickets_list(
             "prev_page": pagination_info.get("prev"),
             "per_page": per_page,
         }, next_call=(
-            {"tool": "tickets.list", "arguments": {"page": next_page, "per_page": per_page}}
+            {"tool": "tickets_list", "arguments": {"page": next_page, "per_page": per_page}}
             if next_page is not None else None
         ))
     except httpx.HTTPStatusError as e:
@@ -668,7 +668,7 @@ async def tickets_list(
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("tickets.create")
+@mcp.tool("tickets_create")
 async def tickets_create(
     subject: str,
     description: str,
@@ -726,7 +726,7 @@ async def tickets_create(
     except Exception as e:
         return f"Error: An unexpected error occurred - {str(e)}"
 
-@mcp.tool("tickets.update")
+@mcp.tool("tickets_update")
 async def tickets_update(ticket_id: int, ticket_fields: Dict[str, Any]) -> Dict[str, Any]:
     """Update a ticket in Freshdesk."""
     if not ticket_fields:
@@ -765,7 +765,7 @@ async def tickets_update(ticket_id: int, ticket_fields: Dict[str, Any]) -> Dict[
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("tickets.delete")
+@mcp.tool("tickets_delete")
 async def tickets_delete(ticket_id: int) -> Dict[str, Any]:
     """Delete a ticket in Freshdesk."""
     try:
@@ -778,7 +778,7 @@ async def tickets_delete(ticket_id: int) -> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}", details={"ticket_id": ticket_id})
 
-@mcp.tool("tickets.get")
+@mcp.tool("tickets_get")
 async def tickets_get(ticket_id: int) -> Dict[str, Any]:
     """Get a ticket in Freshdesk."""
     try:
@@ -789,7 +789,7 @@ async def tickets_get(ticket_id: int) -> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}", details={"ticket_id": ticket_id})
 
-@mcp.tool("tickets.search")
+@mcp.tool("tickets_search")
 async def tickets_search(
     query: str,
     quantity: Optional[int] = None,
@@ -821,7 +821,7 @@ async def tickets_search(
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("tickets.conversations.list")
+@mcp.tool("tickets_conversations_list")
 async def tickets_conversations_list(
     ticket_id: int,
     page: Annotated[int, Field(ge=1, description="Starting page number")] = 1,
@@ -860,7 +860,7 @@ async def tickets_conversations_list(
         }
       - pagination: { has_more: bool, next_page: int|null, prev_page?: int|null }
       - next_call: If more data remains, a convenience hint:
-          { tool: "tickets.conversations.list", arguments: { ticket_id, page, per_page } }
+          { tool: "tickets_conversations_list", arguments: { ticket_id, page, per_page } }
 
     Resume guidance
     - CRITICAL: NEVER change `per_page` between successive calls in the same
@@ -959,7 +959,7 @@ async def tickets_conversations_list(
                         "next_page": next_page,
                         "prev_page": pagination_info.get("prev"),
                     }, warnings=warnings, next_call={
-                        "tool": "tickets.conversations.list",
+                        "tool": "tickets_conversations_list",
                         "arguments": {
                             "ticket_id": ticket_id,
                             "page": next_page,
@@ -1006,7 +1006,7 @@ async def tickets_conversations_list(
             "next_page": current_page if has_more else None,
             # prev_page is not strictly required for forward paging; can be derived by clients
         }, next_call=(
-            {"tool": "tickets.conversations.list", "arguments": {"ticket_id": ticket_id, "page": current_page, "per_page": per_page}}
+            {"tool": "tickets_conversations_list", "arguments": {"ticket_id": ticket_id, "page": current_page, "per_page": per_page}}
             if has_more else None
         ))
     except httpx.HTTPStatusError as e:
@@ -1014,10 +1014,10 @@ async def tickets_conversations_list(
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}", details={"ticket_id": ticket_id})
 
-# removed tickets.conversations.list_all; use tickets.conversations.list with auto_paginate=true
+# removed tickets_conversations_list_all; use tickets_conversations_list with auto_paginate=true
 
 
-@mcp.tool("tickets.reply.create")
+@mcp.tool("tickets_reply_create")
 async def tickets_reply_create(ticket_id: int,body: str)-> Dict[str, Any]:
     """Create a reply to a ticket in Freshdesk."""
     data = {"body": body}
@@ -1029,7 +1029,7 @@ async def tickets_reply_create(ticket_id: int,body: str)-> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}", details={"ticket_id": ticket_id})
 
-@mcp.tool("tickets.note.create")
+@mcp.tool("tickets_note_create")
 async def tickets_note_create(ticket_id: int,body: str)-> Dict[str, Any]:
     """Create a note for a ticket in Freshdesk."""
     data = {"body": body}
@@ -1041,7 +1041,7 @@ async def tickets_note_create(ticket_id: int,body: str)-> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}", details={"ticket_id": ticket_id})
 
-@mcp.tool("tickets.conversation.update")
+@mcp.tool("tickets_conversation_update")
 async def tickets_conversation_update(conversation_id: int,body: str)-> Dict[str, Any]:
     """Update a conversation for a ticket in Freshdesk."""
     data = {"body": body}
@@ -1053,7 +1053,7 @@ async def tickets_conversation_update(conversation_id: int,body: str)-> Dict[str
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}", details={"conversation_id": conversation_id})
 
-@mcp.tool("agents.list")
+@mcp.tool("agents_list")
 async def agents_list(
     page: Annotated[int, Field(ge=1, description="Page number")] = 1,
     per_page: Annotated[int, Field(ge=1, le=100, description="Items per page")] = 30
@@ -1071,7 +1071,7 @@ async def agents_list(
             "prev_page": pagination_info.get("prev"),
             "per_page": per_page,
         }, next_call=(
-            {"tool": "agents.list", "arguments": {"page": next_page, "per_page": per_page}}
+            {"tool": "agents_list", "arguments": {"page": next_page, "per_page": per_page}}
             if next_page is not None else None
         ))
     except httpx.HTTPStatusError as e:
@@ -1079,7 +1079,7 @@ async def agents_list(
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("contacts.list")
+@mcp.tool("contacts_list")
 async def contacts_list(
     page: Annotated[int, Field(ge=1, description="Page number")] = 1,
     per_page: Annotated[int, Field(ge=1, le=100, description="Items per page")] = 30
@@ -1097,7 +1097,7 @@ async def contacts_list(
             "prev_page": pagination_info.get("prev"),
             "per_page": per_page,
         }, next_call=(
-            {"tool": "contacts.list", "arguments": {"page": next_page, "per_page": per_page}}
+            {"tool": "contacts_list", "arguments": {"page": next_page, "per_page": per_page}}
             if next_page is not None else None
         ))
     except httpx.HTTPStatusError as e:
@@ -1105,7 +1105,7 @@ async def contacts_list(
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("contacts.get")
+@mcp.tool("contacts_get")
 async def contacts_get(contact_id: int)-> Dict[str, Any]:
     """Get a contact in Freshdesk."""
     try:
@@ -1116,7 +1116,7 @@ async def contacts_get(contact_id: int)-> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}", details={"contact_id": contact_id})
 
-@mcp.tool("contacts.search")
+@mcp.tool("contacts_search")
 async def contacts_search(query: str)-> Dict[str, Any]:
     """Search for contacts in Freshdesk."""
     params = {"term": query}
@@ -1128,7 +1128,7 @@ async def contacts_search(query: str)-> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("contacts.update")
+@mcp.tool("contacts_update")
 async def contacts_update(contact_id: int, contact_fields: Dict[str, Any])-> Dict[str, Any]:
     """Update a contact in Freshdesk."""
     data = {k: v for k, v in contact_fields.items()}
@@ -1139,7 +1139,7 @@ async def contacts_update(contact_id: int, contact_fields: Dict[str, Any])-> Dic
         return _err("http_error", "Failed to update contact", details={"status": e.response.status_code, "contact_id": contact_id})
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}", details={"contact_id": contact_id})
-@mcp.tool("canned.list")
+@mcp.tool("canned_list")
 async def canned_list(folder_id: int)-> Dict[str, Any]:
     """List all canned responses in Freshdesk."""
     try:
@@ -1150,7 +1150,7 @@ async def canned_list(folder_id: int)-> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}", details={"folder_id": folder_id})
 
-@mcp.tool("canned.folders.list")
+@mcp.tool("canned_folders_list")
 async def canned_folders_list()-> Dict[str, Any]:
     """List all canned response folders in Freshdesk."""
     try:
@@ -1161,7 +1161,7 @@ async def canned_folders_list()-> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("canned.get")
+@mcp.tool("canned_get")
 async def canned_get(canned_response_id: int)-> Dict[str, Any]:
     """View a canned response in Freshdesk."""
     try:
@@ -1171,7 +1171,7 @@ async def canned_get(canned_response_id: int)-> Dict[str, Any]:
         return _err("http_error", "Failed to view canned response", details={"status": e.response.status_code, "canned_response_id": canned_response_id})
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
-@mcp.tool("canned.create")
+@mcp.tool("canned_create")
 async def canned_create(canned_response_fields: Dict[str, Any])-> Dict[str, Any]:
     """Create a canned response in Freshdesk."""
     # Validate input using Pydantic model
@@ -1190,7 +1190,7 @@ async def canned_create(canned_response_fields: Dict[str, Any])-> Dict[str, Any]
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("canned.update")
+@mcp.tool("canned_update")
 async def canned_update(canned_response_id: int, canned_response_fields: Dict[str, Any])-> Dict[str, Any]:
     """Update a canned response in Freshdesk."""
     try:
@@ -1200,7 +1200,7 @@ async def canned_update(canned_response_id: int, canned_response_fields: Dict[st
         return _err("http_error", "Failed to update canned response", details={"status": e.response.status_code, "canned_response_id": canned_response_id})
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
-@mcp.tool("canned.folders.create")
+@mcp.tool("canned_folders_create")
 async def canned_folders_create(name: str)-> Dict[str, Any]:
     """Create a canned response folder in Freshdesk."""
     data = {"name": name}
@@ -1211,7 +1211,7 @@ async def canned_folders_create(name: str)-> Dict[str, Any]:
         return _err("http_error", "Failed to create canned response folder", details={"status": e.response.status_code})
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
-@mcp.tool("canned.folders.update")
+@mcp.tool("canned_folders_update")
 async def canned_folders_update(folder_id: int, name: str)-> Dict[str, Any]:
     """Update a canned response folder in Freshdesk."""
     data = {"name": name}
@@ -1223,7 +1223,7 @@ async def canned_folders_update(folder_id: int, name: str)-> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("solutions.articles.list")
+@mcp.tool("solutions_articles_list")
 async def list_solution_articles(folder_id: int)-> Dict[str, Any]:
     """List all solution articles in Freshdesk."""
     try:
@@ -1234,7 +1234,7 @@ async def list_solution_articles(folder_id: int)-> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("solutions.folders.list")
+@mcp.tool("solutions_folders_list")
 async def list_solution_folders(category_id: int)-> Dict[str, Any]:
     if not category_id:
         return _err("validation_error", "Category ID is required")
@@ -1247,7 +1247,7 @@ async def list_solution_folders(category_id: int)-> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("solutions.categories.list")
+@mcp.tool("solutions_categories_list")
 async def list_solution_categories()-> Dict[str, Any]:
     """List all solution categories in Freshdesk."""
     try:
@@ -1258,7 +1258,7 @@ async def list_solution_categories()-> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("solutions.categories.get")
+@mcp.tool("solutions_categories_get")
 async def view_solution_category(category_id: int)-> Dict[str, Any]:
     """View a solution category in Freshdesk."""
     try:
@@ -1269,7 +1269,7 @@ async def view_solution_category(category_id: int)-> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("solutions.categories.create")
+@mcp.tool("solutions_categories_create")
 async def create_solution_category(category_fields: Dict[str, Any])-> Dict[str, Any]:
     """Create a solution category in Freshdesk."""
     if not category_fields.get("name"):
@@ -1283,7 +1283,7 @@ async def create_solution_category(category_fields: Dict[str, Any])-> Dict[str, 
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("solutions.categories.update")
+@mcp.tool("solutions_categories_update")
 async def update_solution_category(category_id: int, category_fields: Dict[str, Any])-> Dict[str, Any]:
     """Update a solution category in Freshdesk."""
     if not category_fields.get("name"):
@@ -1297,7 +1297,7 @@ async def update_solution_category(category_id: int, category_fields: Dict[str, 
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("solutions.folders.create")
+@mcp.tool("solutions_folders_create")
 async def create_solution_category_folder(category_id: int, folder_fields: Dict[str, Any])-> Dict[str, Any]:
     """Create a solution category folder in Freshdesk."""
     if not folder_fields.get("name"):
@@ -1310,7 +1310,7 @@ async def create_solution_category_folder(category_id: int, folder_fields: Dict[
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("solutions.folders.get")
+@mcp.tool("solutions_folders_get")
 async def view_solution_category_folder(folder_id: int)-> Dict[str, Any]:
     """View a solution category folder in Freshdesk."""
     try:
@@ -1320,7 +1320,7 @@ async def view_solution_category_folder(folder_id: int)-> Dict[str, Any]:
         return _err("http_error", "Failed to view solution folder", details={"status": e.response.status_code, "folder_id": folder_id})
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
-@mcp.tool("solutions.folders.update")
+@mcp.tool("solutions_folders_update")
 async def update_solution_category_folder(folder_id: int, folder_fields: Dict[str, Any])-> Dict[str, Any]:
     """Update a solution category folder in Freshdesk."""
     if not folder_fields.get("name"):
@@ -1334,7 +1334,7 @@ async def update_solution_category_folder(folder_id: int, folder_fields: Dict[st
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
 
-@mcp.tool("solutions.articles.create")
+@mcp.tool("solutions_articles_create")
 async def create_solution_article(folder_id: int, article_fields: Dict[str, Any])-> Dict[str, Any]:
     """Create a solution article in Freshdesk."""
     if not article_fields.get("title") or not article_fields.get("status") or not article_fields.get("description"):
@@ -1347,7 +1347,7 @@ async def create_solution_article(folder_id: int, article_fields: Dict[str, Any]
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("solutions.articles.get")
+@mcp.tool("solutions_articles_get")
 async def view_solution_article(article_id: int)-> Dict[str, Any]:
     """View a solution article in Freshdesk."""
     try:
@@ -1358,7 +1358,7 @@ async def view_solution_article(article_id: int)-> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("solutions.articles.update")
+@mcp.tool("solutions_articles_update")
 async def update_solution_article(article_id: int, article_fields: Dict[str, Any])-> Dict[str, Any]:
     """Update a solution article in Freshdesk."""
     try:
@@ -1369,7 +1369,7 @@ async def update_solution_article(article_id: int, article_fields: Dict[str, Any
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("agents.get")
+@mcp.tool("agents_get")
 async def view_agent(agent_id: int)-> Dict[str, Any]:
     """View an agent in Freshdesk."""
     try:
@@ -1380,7 +1380,7 @@ async def view_agent(agent_id: int)-> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("agents.create")
+@mcp.tool("agents_create")
 async def create_agent(agent_fields: Dict[str, Any]) -> Dict[str, Any]:
     """Create an agent in Freshdesk."""
     # Validate mandatory fields
@@ -1404,7 +1404,7 @@ async def create_agent(agent_fields: Dict[str, Any]) -> Dict[str, Any]:
             pass
         return _err("http_error", "Failed to create agent", details={"status": e.response.status_code, "details": details})
 
-@mcp.tool("agents.update")
+@mcp.tool("agents_update")
 async def update_agent(agent_id: int, agent_fields: Dict[str, Any]) -> Dict[str, Any]:
     """Update an agent in Freshdesk."""
     try:
@@ -1415,7 +1415,7 @@ async def update_agent(agent_id: int, agent_fields: Dict[str, Any]) -> Dict[str,
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("agents.search")
+@mcp.tool("agents_search")
 async def search_agents(query: str) -> Dict[str, Any]:
     """Search for agents in Freshdesk."""
     params = {"term": query}
@@ -1426,7 +1426,7 @@ async def search_agents(query: str) -> Dict[str, Any]:
         return _err("http_error", "Failed to search agents", details={"status": e.response.status_code})
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
-@mcp.tool("groups.list")
+@mcp.tool("groups_list")
 async def list_groups(page: Annotated[int, Field(ge=1, description="Page number")] = 1, per_page: Annotated[int, Field(ge=1, le=100, description="Items per page")] = 30)-> Dict[str, Any]:
     """List all groups in Freshdesk."""
     params = {"page": page, "per_page": per_page}
@@ -1441,7 +1441,7 @@ async def list_groups(page: Annotated[int, Field(ge=1, description="Page number"
             "prev_page": pagination_info.get("prev"),
             "per_page": per_page,
         }, next_call=(
-            {"tool": "groups.list", "arguments": {"page": next_page, "per_page": per_page}}
+            {"tool": "groups_list", "arguments": {"page": next_page, "per_page": per_page}}
             if next_page is not None else None
         ))
     except httpx.HTTPStatusError as e:
@@ -1449,7 +1449,7 @@ async def list_groups(page: Annotated[int, Field(ge=1, description="Page number"
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("groups.create")
+@mcp.tool("groups_create")
 async def create_group(group_fields: Dict[str, Any]) -> Dict[str, Any]:
     """Create a group in Freshdesk."""
     # Validate input using Pydantic model
@@ -1471,7 +1471,7 @@ async def create_group(group_fields: Dict[str, Any]) -> Dict[str, Any]:
             pass
         return _err("http_error", "Failed to create group", details={"status": e.response.status_code, "details": details})
 
-@mcp.tool("groups.get")
+@mcp.tool("groups_get")
 async def view_group(group_id: int) -> Dict[str, Any]:
     """View a group in Freshdesk."""
     try:
@@ -1482,7 +1482,7 @@ async def view_group(group_id: int) -> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("fields.tickets.create")
+@mcp.tool("fields_tickets_create")
 async def create_ticket_field(ticket_field_fields: Dict[str, Any]) -> Dict[str, Any]:
     """Create a ticket field in Freshdesk."""
     try:
@@ -1492,7 +1492,7 @@ async def create_ticket_field(ticket_field_fields: Dict[str, Any]) -> Dict[str, 
         return _err("http_error", "Failed to create ticket field", details={"status": e.response.status_code})
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
-@mcp.tool("fields.tickets.get")
+@mcp.tool("fields_tickets_get")
 async def view_ticket_field(ticket_field_id: int) -> Dict[str, Any]:
     """View a ticket field in Freshdesk."""
     try:
@@ -1503,7 +1503,7 @@ async def view_ticket_field(ticket_field_id: int) -> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("fields.tickets.update")
+@mcp.tool("fields_tickets_update")
 async def update_ticket_field(ticket_field_id: int, ticket_field_fields: Dict[str, Any]) -> Dict[str, Any]:
     """Update a ticket field in Freshdesk."""
     try:
@@ -1514,7 +1514,7 @@ async def update_ticket_field(ticket_field_id: int, ticket_field_fields: Dict[st
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("groups.update")
+@mcp.tool("groups_update")
 async def update_group(group_id: int, group_fields: Dict[str, Any]) -> Dict[str, Any]:
     """Update a group in Freshdesk."""
     try:
@@ -1534,7 +1534,7 @@ async def update_group(group_id: int, group_fields: Dict[str, Any]) -> Dict[str,
             pass
         return _err("http_error", "Failed to update group", details={"status": e.response.status_code, "details": details})
 
-@mcp.tool("fields.contacts.list")
+@mcp.tool("fields_contacts_list")
 async def list_contact_fields()-> Dict[str, Any]:
     """List all contact fields in Freshdesk."""
     try:
@@ -1545,7 +1545,7 @@ async def list_contact_fields()-> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("fields.contacts.get")
+@mcp.tool("fields_contacts_get")
 async def view_contact_field(contact_field_id: int) -> Dict[str, Any]:
     """View a contact field in Freshdesk."""
     try:
@@ -1556,7 +1556,7 @@ async def view_contact_field(contact_field_id: int) -> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("fields.contacts.create")
+@mcp.tool("fields_contacts_create")
 async def create_contact_field(contact_field_fields: Dict[str, Any]) -> Dict[str, Any]:
     """Create a contact field in Freshdesk."""
     # Validate input using Pydantic model
@@ -1574,7 +1574,7 @@ async def create_contact_field(contact_field_fields: Dict[str, Any]) -> Dict[str
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("fields.contacts.update")
+@mcp.tool("fields_contacts_update")
 async def update_contact_field(contact_field_id: int, contact_field_fields: Dict[str, Any]) -> Dict[str, Any]:
     """Update a contact field in Freshdesk."""
     try:
@@ -1584,7 +1584,7 @@ async def update_contact_field(contact_field_id: int, contact_field_fields: Dict
         return _err("http_error", "Failed to update contact field", details={"status": e.response.status_code, "contact_field_id": contact_field_id})
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
-@mcp.tool("fields.tickets.get_property")
+@mcp.tool("fields_tickets_get_property")
 async def get_field_properties(field_name: str):
     """Get properties of a specific field by name."""
     actual_field_name=field_name
@@ -1623,12 +1623,12 @@ Kindly create a ticket in Freshdesk using the following payload:
 
 {payload}
 
-If you need to retrieve information about any fields (such as allowed values or internal keys), please use the `fields.tickets.get_property` tool.
+If you need to retrieve information about any fields (such as allowed values or internal keys), please use the `fields_tickets_get_property` tool.
 
 Notes:
 - The "type" field is **not** a custom field; it is a standard system field.
 - The "type" field is required but should be passed as a top-level parameter, not within custom_fields.
-Make sure to reference the correct keys from `fields.tickets.get_property` when constructing the payload.
+Make sure to reference the correct keys from `fields_tickets_get_property` when constructing the payload.
 """
 
 @mcp.prompt()
@@ -1651,7 +1651,7 @@ Notes:
 - Ensure the tone and style **match the prior replies**, and that the message provides **full context** so the recipient can understand the issue without needing to re-read earlier messages.
 """
 
-@mcp.tool("companies.list")
+@mcp.tool("companies_list")
 async def list_companies(
     page: Annotated[int, Field(ge=1, description="Page number")] = 1,
     per_page: Annotated[int, Field(ge=1, le=100, description="Items per page")] = 30
@@ -1670,7 +1670,7 @@ async def list_companies(
             "prev_page": pagination_info.get("prev"),
             "per_page": per_page
         }, next_call=(
-            {"tool": "companies.list", "arguments": {"page": next_page, "per_page": per_page}}
+            {"tool": "companies_list", "arguments": {"page": next_page, "per_page": per_page}}
             if next_page is not None else None
         ))
     except httpx.HTTPStatusError as e:
@@ -1678,7 +1678,7 @@ async def list_companies(
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("companies.get")
+@mcp.tool("companies_get")
 async def view_company(company_id: int) -> Dict[str, Any]:
     """Get a company in Freshdesk."""
     try:
@@ -1689,7 +1689,7 @@ async def view_company(company_id: int) -> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}", details={"company_id": company_id})
 
-@mcp.tool("companies.search")
+@mcp.tool("companies_search")
 async def search_companies(query: str) -> Dict[str, Any]:
     """Search for companies in Freshdesk."""
     params = {"name": query}
@@ -1701,7 +1701,7 @@ async def search_companies(query: str) -> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("companies.find_by_name")
+@mcp.tool("companies_find_by_name")
 async def find_company_by_name(name: str) -> Dict[str, Any]:
     """Find a company by name in Freshdesk."""
     params = {"name": name}
@@ -1713,7 +1713,7 @@ async def find_company_by_name(name: str) -> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("fields.companies.list")
+@mcp.tool("fields_companies_list")
 async def list_company_fields() -> Dict[str, Any]:
     """List all company fields in Freshdesk."""
     try:
@@ -1724,7 +1724,7 @@ async def list_company_fields() -> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}")
 
-@mcp.tool("tickets.summary.get")
+@mcp.tool("tickets_summary_get")
 async def view_ticket_summary(ticket_id: int) -> Dict[str, Any]:
     """Get the summary of a ticket in Freshdesk."""
     try:
@@ -1735,7 +1735,7 @@ async def view_ticket_summary(ticket_id: int) -> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}", details={"ticket_id": ticket_id})
 
-@mcp.tool("tickets.summary.update")
+@mcp.tool("tickets_summary_update")
 async def update_ticket_summary(ticket_id: int, body: str) -> Dict[str, Any]:
     """Update the summary of a ticket in Freshdesk."""
     data = {
@@ -1749,7 +1749,7 @@ async def update_ticket_summary(ticket_id: int, body: str) -> Dict[str, Any]:
     except Exception as e:
         return _err("unexpected_error", f"An unexpected error occurred: {str(e)}", details={"ticket_id": ticket_id})
 
-@mcp.tool("tickets.summary.delete")
+@mcp.tool("tickets_summary_delete")
 async def delete_ticket_summary(ticket_id: int) -> Dict[str, Any]:
     """Delete the summary of a ticket in Freshdesk."""
     try:
