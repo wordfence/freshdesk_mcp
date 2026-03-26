@@ -370,10 +370,18 @@ async def get_ticket_fields() -> Dict[str, Any]:
 
 @mcp.tool()
 async def get_tickets(page: Optional[int] = 1, per_page: Optional[int] = 30) -> Dict[str, Any]:
-    """Get tickets from Freshdesk with pagination support."""
+    """List tickets from Freshdesk with pagination support.
+
+    Returns up to 100 tickets per page. The API supports a maximum of 300 pages
+    (30,000 tickets total). Use the pagination info in the response to determine
+    whether additional pages exist.
+
+    Note: This endpoint only supports filtering by built-in Freshdesk ticket
+    fields. To filter by custom fields, use search_tickets instead.
+    """
     # Validate input parameters
-    if page < 1:
-        return {"error": "Page number must be greater than 0"}
+    if page < 1 or page > 300:
+        return {"error": "Page number must be between 1 and 300"}
 
     if per_page < 1 or per_page > 100:
         return {"error": "Page size must be between 1 and 100"}
@@ -578,6 +586,7 @@ async def get_ticket(ticket_id: int):
 @mcp.tool()
 async def search_tickets(
     query: str,
+    page: Optional[int] = 1,
     quantity: int | None = None,
     strip_html: Optional[bool] = True,
     strip_null_fields: Optional[bool] = True,
@@ -588,6 +597,11 @@ async def search_tickets(
     The query parameter must be wrapped in literal double quotes, e.g.:
         '"status:2 AND priority:1"'
 
+    The API returns 30 results per page (fixed). Use the page parameter to
+    paginate through results. The maximum page number is 10, so at most 300
+    results are available. The response includes a "total" field with the
+    total count of matching tickets across all pages.
+
     If strip_html is True, removes HTML tags from each item in the
     response's "results" array for cleaner, token‑efficient output.
 
@@ -597,11 +611,14 @@ async def search_tickets(
     If limit_to_fields is provided, only those fields will be returned for
     each item in the response's "results" array.
     """
+    if page < 1 or page > 10:
+        return {"error": "Page number must be between 1 and 10"}
+
     url = f"https://{FRESHDESK_DOMAIN}/api/v2/search/tickets"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}"
     }
-    params = {"query": query}
+    params = {"query": query, "page": page}
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
         data = response.json()
