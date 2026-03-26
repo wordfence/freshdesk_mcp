@@ -369,8 +369,20 @@ async def get_ticket_fields() -> Dict[str, Any]:
 
 
 @mcp.tool()
-async def get_tickets(page: Optional[int] = 1, per_page: Optional[int] = 30) -> Dict[str, Any]:
-    """List tickets from Freshdesk with pagination support.
+async def get_tickets(
+    page: Optional[int] = 1,
+    per_page: Optional[int] = 30,
+    filter: Optional[str] = None,
+    requester_id: Optional[int] = None,
+    email: Optional[str] = None,
+    unique_external_id: Optional[str] = None,
+    company_id: Optional[int] = None,
+    updated_since: Optional[str] = None,
+    order_by: Optional[str] = None,
+    order_type: Optional[str] = None,
+    include: Optional[str] = None,
+) -> Dict[str, Any]:
+    """List tickets from Freshdesk with pagination and filtering support.
 
     Returns up to 100 tickets per page. The API supports a maximum of 300 pages
     (30,000 tickets total). Use the pagination info in the response to determine
@@ -378,6 +390,19 @@ async def get_tickets(page: Optional[int] = 1, per_page: Optional[int] = 30) -> 
 
     Note: This endpoint only supports filtering by built-in Freshdesk ticket
     fields. To filter by custom fields, use search_tickets instead.
+
+    Args:
+        page: Page number (1-300).
+        per_page: Results per page (1-100).
+        filter: Predefined filter — one of: new_and_my_open, watching, spam, deleted.
+        requester_id: Filter by requester ID.
+        email: Filter by requester email address.
+        unique_external_id: Filter by requester's unique external ID.
+        company_id: Filter by company ID.
+        updated_since: Return tickets updated after this timestamp (ISO 8601, e.g. 2025-01-01T00:00:00Z).
+        order_by: Sort field — one of: created_at, due_by, updated_at, status.
+        order_type: Sort direction — asc or desc (default: desc).
+        include: Comma-separated list of extra data to embed — stats, requester, description.
     """
     # Validate input parameters
     if page < 1 or page > 300:
@@ -386,12 +411,40 @@ async def get_tickets(page: Optional[int] = 1, per_page: Optional[int] = 30) -> 
     if per_page < 1 or per_page > 100:
         return {"error": "Page size must be between 1 and 100"}
 
+    if filter is not None and filter not in ("new_and_my_open", "watching", "spam", "deleted"):
+        return {"error": "filter must be one of: new_and_my_open, watching, spam, deleted"}
+
+    if order_by is not None and order_by not in ("created_at", "due_by", "updated_at", "status"):
+        return {"error": "order_by must be one of: created_at, due_by, updated_at, status"}
+
+    if order_type is not None and order_type not in ("asc", "desc"):
+        return {"error": "order_type must be one of: asc, desc"}
+
     url = f"https://{FRESHDESK_DOMAIN}/api/v2/tickets"
 
-    params = {
+    params: Dict[str, Any] = {
         "page": page,
         "per_page": per_page
     }
+
+    if filter is not None:
+        params["filter"] = filter
+    if requester_id is not None:
+        params["requester_id"] = requester_id
+    if email is not None:
+        params["email"] = email
+    if unique_external_id is not None:
+        params["unique_external_id"] = unique_external_id
+    if company_id is not None:
+        params["company_id"] = company_id
+    if updated_since is not None:
+        params["updated_since"] = updated_since
+    if order_by is not None:
+        params["order_by"] = order_by
+    if order_type is not None:
+        params["order_type"] = order_type
+    if include is not None:
+        params["include"] = include
 
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{FRESHDESK_API_KEY}:X'.encode()).decode()}",
