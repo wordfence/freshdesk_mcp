@@ -580,11 +580,22 @@ async def search_tickets(
     query: str,
     quantity: int | None = None,
     strip_html: Optional[bool] = True,
+    strip_null_fields: Optional[bool] = True,
+    limit_to_fields: Optional[List[str]] = None,
 ) -> Dict[str, Any] | List[Dict[str, Any]]:
     """Search for tickets in Freshdesk.
 
+    The query parameter must be wrapped in literal double quotes, e.g.:
+        '"status:2 AND priority:1"'
+
     If strip_html is True, removes HTML tags from each item in the
     response's "results" array for cleaner, token‑efficient output.
+
+    If strip_null_fields is True, removes fields with a value of None from
+    each item in the response's "results" array.
+
+    If limit_to_fields is provided, only those fields will be returned for
+    each item in the response's "results" array.
     """
     url = f"https://{FRESHDESK_DOMAIN}/api/v2/search/tickets"
     headers = {
@@ -599,6 +610,22 @@ async def search_tickets(
     if strip_html and isinstance(data, dict) and isinstance(data.get("results"), list):
         cleaned = [_strip_html_from_obj(item) for item in data["results"]]
         data["results"] = cleaned
+
+    # Remove null fields from results, if present
+    if strip_null_fields and isinstance(data, dict) and isinstance(data.get("results"), list):
+        data["results"] = [
+            {k: v for k, v in item.items() if v is not None}
+            if isinstance(item, dict) else item
+            for item in data["results"]
+        ]
+
+    # Limit to specified fields, if provided
+    if limit_to_fields and isinstance(data, dict) and isinstance(data.get("results"), list):
+        data["results"] = [
+            {k: v for k, v in item.items() if k in limit_to_fields}
+            if isinstance(item, dict) else item
+            for item in data["results"]
+        ]
 
     if quantity is not None and isinstance(data, dict) and isinstance(data.get("results"), list):
         return data["results"][:quantity]
