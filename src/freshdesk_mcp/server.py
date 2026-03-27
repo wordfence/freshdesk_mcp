@@ -644,6 +644,7 @@ async def search_tickets(
     strip_html: Optional[bool] = True,
     strip_null_fields: Optional[bool] = True,
     limit_to_fields: Optional[List[str]] = None,
+    max_description_length: Optional[int] = None,
 ) -> Dict[str, Any] | List[Dict[str, Any]]:
     """Search for tickets in Freshdesk.
 
@@ -663,6 +664,9 @@ async def search_tickets(
 
     If limit_to_fields is provided, only those fields will be returned for
     each item in the response's "results" array.
+
+    If max_description_length is provided, truncates the description and
+    description_text fields of each result to that many characters.
     """
     if page < 1 or page > 10:
         return {"error": "Page number must be between 1 and 10"}
@@ -696,6 +700,14 @@ async def search_tickets(
             if isinstance(item, dict) else item
             for item in data["results"]
         ]
+
+    # Truncate description and description_text, if requested
+    if max_description_length is not None and isinstance(data, dict) and isinstance(data.get("results"), list):
+        for item in data["results"]:
+            if isinstance(item, dict):
+                for field in ("description", "description_text"):
+                    if isinstance(item.get(field), str):
+                        item[field] = item[field][:max_description_length]
 
     if quantity is not None and isinstance(data, dict) and isinstance(data.get("results"), list):
         return data["results"][:quantity]
